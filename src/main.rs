@@ -3,11 +3,15 @@ use std::{
     io::{BufRead, BufReader},
 };
 
+use console::{Key, Term};
+
 fn main() {
+    let term = Term::stdout();
+
     let file = File::open("book.txt").expect("Failed to read file");
     let reader = BufReader::new(file);
 
-    for line in reader.lines().into_iter().take(200) {
+    for line in reader.lines() {
         let line = match line {
             Ok(line) => line,
             Err(e) => {
@@ -20,6 +24,18 @@ fn main() {
             continue;
         }
 
-        println!("{}", line);
+        println!("{}\n", line);
+
+        loop {
+            let key = term.read_key();
+            match key {
+                Ok(key) => {
+                    if key == Key::ArrowRight {
+                        break;
+                    }
+                }
+                Err(e) => println!("Error while reading a key {e}"),
+            }
+        }
     }
 }
