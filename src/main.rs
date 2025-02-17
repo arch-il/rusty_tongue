@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     fs::File,
     io::{BufRead, BufReader, Lines},
 };
@@ -9,6 +8,7 @@ use ringbuf::{
     traits::{Consumer, Observer, Producer, SplitRef},
     StaticRb,
 };
+use ritelinked::LinkedHashMap;
 use rust_translate::translate_to_english;
 
 fn main() {
@@ -32,8 +32,11 @@ enum WordStatus {
 struct MyEguiApp {
     lines: Lines<BufReader<File>>,
     paragraph: Vec<RichText>,
-    word_list: HashMap<String, (String, WordStatus)>,
+
+    dictionary: LinkedHashMap<String, (String, WordStatus)>,
+    dictionary_open: bool,
     index: usize,
+
     text_history: Vec<String>,
     translate_history: StaticRb<(String, String), 100>,
 }
@@ -51,13 +54,16 @@ impl MyEguiApp {
         let word_list = [(String::new(), (String::new(), WordStatus::Mastered))]
             .iter()
             .cloned()
-            .collect::<HashMap<String, (String, WordStatus)>>();
+            .collect::<LinkedHashMap<String, (String, WordStatus)>>();
 
         let mut temp = Self {
             lines,
             paragraph: vec![],
-            word_list,
+
+            dictionary: word_list,
+            dictionary_open: false,
             index: 0,
+
             text_history: vec![],
             translate_history: StaticRb::<(String, String), 100>::default(),
         };
@@ -90,8 +96,29 @@ impl eframe::App for MyEguiApp {
             .show(ctx, |ui| {
                 ui.heading("Dictionary");
 
+                if ui
+                    .button(if self.dictionary_open {
+                        "Close Dictionary"
+                    } else {
+                        "Open Dictionary"
+                    })
+                    .clicked()
+                {
+                    self.dictionary_open = !self.dictionary_open;
+                }
+
+                // if self.dictionary_open {
+                egui::Window::new("Dictionary")
+                    .open(&mut self.dictionary_open)
+                    .show(ctx, |ui| {
+                        for (from, (to, _status)) in self.dictionary.iter().skip(1).rev() {
+                            ui.label(format!("{from} - {to}"));
+                        }
+                    });
+                // }
+
                 let (mut learning, mut mastered) = (0, 0);
-                for (_, (_, word_status)) in self.word_list.iter() {
+                for (_, (_, word_status)) in self.dictionary.iter() {
                     match word_status {
                         WordStatus::Learning => learning += 1,
                         WordStatus::Mastered => mastered += 1,
@@ -107,7 +134,7 @@ impl eframe::App for MyEguiApp {
                 if !self.translate_history.is_empty() {
                     if ui.button("Mark Mastered").clicked() {
                         let word = &self.translate_history.last().unwrap().0;
-                        let (_, word_status) = self.word_list.get_mut(word).unwrap();
+                        let (_, word_status) = self.dictionary.get_mut(word).unwrap();
                         *word_status = WordStatus::Mastered;
 
                         self.get_history_entry(self.index);
@@ -116,7 +143,7 @@ impl eframe::App for MyEguiApp {
 
                 let mut iter = self.translate_history.iter().rev();
                 if let Some((from, to)) = iter.next() {
-                    let color = if self.word_list.get(from).unwrap().1 == WordStatus::Learning {
+                    let color = if self.dictionary.get(from).unwrap().1 == WordStatus::Learning {
                         Color32::YELLOW
                     } else {
                         Color32::GRAY
@@ -147,8 +174,8 @@ impl eframe::App for MyEguiApp {
 
                         self.record_translate_history(&word, &translated_word);
 
-                        if !self.word_list.keys().any(|x| x == &word) {
-                            self.word_list
+                        if !self.dictionary.keys().any(|x| x == &word) {
+                            self.dictionary
                                 .insert(word, (translated_word, WordStatus::Learning));
 
                             self.get_history_entry(self.index);
@@ -168,7 +195,7 @@ impl MyEguiApp {
             self.text_history.push(text);
         }
 
-        self.paragraph = text_to_tokens(&self.text_history[self.index], &self.word_list);
+        self.paragraph = text_to_tokens(&self.text_history[self.index], &self.dictionary);
     }
 
     fn record_translate_history(&mut self, from: &str, to: &str) {
@@ -211,7 +238,10 @@ fn token_to_word(token: &str) -> String {
         .to_lowercase()
 }
 
-fn text_to_tokens(text: &str, word_list: &HashMap<String, (String, WordStatus)>) -> Vec<RichText> {
+fn text_to_tokens(
+    text: &str,
+    word_list: &LinkedHashMap<String, (String, WordStatus)>,
+) -> Vec<RichText> {
     text.split(" ")
         .map(|token| {
             let word = token_to_word(token);
