@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-use eframe::egui::{self, Color32, Rect, RichText, Widget};
+use eframe::egui::{self, Color32, Rect, RichText, Vec2, ViewportBuilder, Widget};
 use ringbuf::{
     traits::{Consumer, Observer, Producer, SplitRef},
     StaticRb,
@@ -12,7 +12,9 @@ use ringbuf::{
 use rust_translate::translate_to_english;
 
 fn main() {
-    let native_options = eframe::NativeOptions::default();
+    let mut native_options = eframe::NativeOptions::default();
+    native_options.viewport = ViewportBuilder::default().with_inner_size(Vec2::new(600.0, 400.0));
+
     eframe::run_native(
         "Rusty Tongue",
         native_options,
@@ -21,7 +23,7 @@ fn main() {
     .unwrap();
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum WordStatus {
     Learning,
     Mastered,
@@ -102,9 +104,25 @@ impl eframe::App for MyEguiApp {
                 ui.separator();
                 ui.heading("History");
 
+                if !self.translate_history.is_empty() {
+                    if ui.button("Mark Mastered").clicked() {
+                        let word = &self.translate_history.last().unwrap().0;
+                        let (_, word_status) = self.word_list.get_mut(word).unwrap();
+                        *word_status = WordStatus::Mastered;
+
+                        self.get_history_entry(self.index);
+                    }
+                }
+
                 let mut iter = self.translate_history.iter().rev();
                 if let Some((from, to)) = iter.next() {
-                    ui.label(RichText::from(format!("{from} - {to}")).color(Color32::YELLOW));
+                    let color = if self.word_list.get(from).unwrap().1 == WordStatus::Learning {
+                        Color32::YELLOW
+                    } else {
+                        Color32::GRAY
+                    };
+
+                    ui.label(RichText::from(format!("{from} - {to}")).color(color));
                 }
 
                 for (from, to) in iter {
@@ -125,11 +143,11 @@ impl eframe::App for MyEguiApp {
 
                     if label_button.clicked() {
                         let word = token_to_word(token.text());
+                        let translated_word = translate_text(&word);
+
+                        self.record_translate_history(&word, &translated_word);
+
                         if !self.word_list.keys().any(|x| x == &word) {
-                            let translated_word = translate_text(&word);
-
-                            self.record_translate_history(&word, &translated_word);
-
                             self.word_list
                                 .insert(word, (translated_word, WordStatus::Learning));
 
