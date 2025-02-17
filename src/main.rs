@@ -6,6 +6,9 @@ use std::{
 use console::{Key, Style, Term};
 use rust_translate::translate_to_english;
 
+mod action;
+use action::Action;
+
 #[tokio::main]
 async fn main() {
     let term = Term::stdout();
@@ -14,8 +17,19 @@ async fn main() {
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
 
-    draw(&mut lines).await;
-    // input(&term);
+    loop {
+        let action = input(&term);
+
+        match action {
+            Action::NextPage => draw(&mut lines).await,
+            Action::Exit => {
+                term.clear_screen().expect("Failed while clearing screen");
+                break;
+            }
+
+            Action::None => continue,
+        }
+    }
 }
 
 async fn draw(lines: &mut Lines<BufReader<File>>) {
@@ -47,16 +61,13 @@ async fn draw(lines: &mut Lines<BufReader<File>>) {
     }
 }
 
-fn input(term: &Term) {
-    loop {
-        let key = term.read_key();
-        match key {
-            Ok(key) => {
-                if key == Key::ArrowRight {
-                    break;
-                }
-            }
-            Err(e) => println!("Error while reading a key {e}"),
-        }
+fn input(term: &Term) -> Action {
+    let key = term.read_key().expect("Error while reading a key");
+
+    match key {
+        Key::ArrowDown => Action::NextPage,
+        Key::Escape | Key::Char('q') => Action::Exit,
+
+        _ => Action::None,
     }
 }
