@@ -5,6 +5,10 @@ use std::{
 };
 
 use eframe::egui::{self, Color32, Rect, RichText, Widget};
+use ringbuf::{
+    traits::{Consumer, Observer, Producer, SplitRef},
+    StaticRb,
+};
 use rust_translate::translate_to_english;
 
 fn main() {
@@ -28,7 +32,8 @@ struct MyEguiApp {
     paragraph: Vec<RichText>,
     word_list: HashMap<String, (String, WordStatus)>,
     index: usize,
-    history: Vec<String>,
+    text_history: Vec<String>,
+    translate_history: StaticRb<(String, String), 100>,
 }
 
 impl MyEguiApp {
@@ -51,7 +56,8 @@ impl MyEguiApp {
             paragraph: vec![],
             word_list,
             index: 0,
-            history: vec![],
+            text_history: vec![],
+            translate_history: StaticRb::<(String, String), 100>::default(),
         };
         temp.get_history_entry(0);
         temp
@@ -75,7 +81,7 @@ impl eframe::App for MyEguiApp {
             }
         });
 
-        const SIDE_PANEL_WIDTH: f32 = 100.0;
+        const SIDE_PANEL_WIDTH: f32 = 200.0;
 
         egui::SidePanel::right("Info Panel")
             .exact_width(SIDE_PANEL_WIDTH)
@@ -92,6 +98,18 @@ impl eframe::App for MyEguiApp {
 
                 ui.label(format!("learning: {learning}"));
                 ui.label(format!("mastered: {mastered}"));
+
+                ui.separator();
+                ui.heading("History");
+
+                let mut iter = self.translate_history.iter().rev();
+                if let Some((from, to)) = iter.next() {
+                    ui.label(RichText::from(format!("{from} - {to}")).color(Color32::YELLOW));
+                }
+
+                for (from, to) in iter {
+                    ui.label(format!("{from} - {to}"));
+                }
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -109,8 +127,12 @@ impl eframe::App for MyEguiApp {
                         let word = token_to_word(token.text());
                         if !self.word_list.keys().any(|x| x == &word) {
                             let translated_word = translate_text(&word);
+
+                            self.record_translate_history(&word, &translated_word);
+
                             self.word_list
                                 .insert(word, (translated_word, WordStatus::Learning));
+
                             self.get_history_entry(self.index);
                         }
                     }
@@ -122,13 +144,21 @@ impl eframe::App for MyEguiApp {
 
 impl MyEguiApp {
     fn get_history_entry(&mut self, index: usize) {
-        while index >= self.history.len() {
+        while index >= self.text_history.len() {
             let text = next_paragraph(&mut self.lines);
 
-            self.history.push(text);
+            self.text_history.push(text);
         }
 
-        self.paragraph = text_to_tokens(&self.history[self.index], &self.word_list);
+        self.paragraph = text_to_tokens(&self.text_history[self.index], &self.word_list);
+    }
+
+    fn record_translate_history(&mut self, from: &str, to: &str) {
+        let (mut prod, mut cons) = self.translate_history.split_ref();
+        if cons.is_full() {
+            cons.try_pop();
+        }
+        let _ = prod.try_push((from.to_string(), to.to_string()));
     }
 }
 
