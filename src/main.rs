@@ -5,6 +5,7 @@ use std::{
 };
 
 use eframe::egui::{self, Color32, RichText, Widget};
+use rust_translate::translate_to_english;
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -85,8 +86,9 @@ impl eframe::App for MyEguiApp {
                     if label_button.clicked() {
                         let word = token_to_word(token.text());
                         if !self.word_list.keys().any(|x| x == &word) {
+                            let translated_word = translate_text(&word);
                             self.word_list
-                                .insert(word, (String::new(), WordStatus::Learning));
+                                .insert(word, (translated_word, WordStatus::Learning));
                             self.get_history_entry(self.index);
                         }
                     }
@@ -153,4 +155,16 @@ fn text_to_tokens(text: &str, word_list: &HashMap<String, (String, WordStatus)>)
             RichText::from(token).color(Color32::RED)
         })
         .collect()
+}
+
+fn translate_text(text: &str) -> String {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            translate_to_english(&text)
+                .await
+                .expect("Failed translating text")
+        })
 }
