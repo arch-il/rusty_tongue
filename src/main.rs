@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-use eframe::egui::{self, Color32, RichText};
+use eframe::egui::{self, Color32, RichText, Widget};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -46,11 +46,7 @@ impl eframe::App for MyEguiApp {
                 self.paragraph = text
                     .split(" ")
                     .map(|token| {
-                        let word = token
-                            .chars()
-                            .filter(|c| c.is_alphabetic())
-                            .collect::<String>()
-                            .to_lowercase();
+                        let word = token_to_word(token);
 
                         if self.word_list.contains(&word) {
                             return RichText::from(token).color(Color32::GREEN);
@@ -67,8 +63,17 @@ impl eframe::App for MyEguiApp {
             // ? Why do I need horizontal with labels?
             ui.horizontal_wrapped(|ui| {
                 // ! Try to remove clone here
-                for token in self.paragraph.clone().into_iter() {
-                    ui.label(token);
+                for token in self.paragraph.clone().iter() {
+                    let label_button = egui::Label::new(token.clone())
+                        .sense(egui::Sense::click())
+                        .ui(ui);
+
+                    if label_button.clicked() {
+                        let word = token_to_word(token.text());
+                        if !self.word_list.contains(&word) {
+                            self.word_list.push(word);
+                        }
+                    }
                 }
             })
         });
@@ -96,4 +101,12 @@ fn next_paragraph(lines: &mut Lines<BufReader<File>>) -> String {
 
         return line;
     }
+}
+
+fn token_to_word(token: &str) -> String {
+    token
+        .chars()
+        .filter(|c| c.is_alphabetic())
+        .collect::<String>()
+        .to_lowercase()
 }
