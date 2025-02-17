@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-use eframe::egui::{self, RichText};
+use eframe::egui::{self, Color32, RichText};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -18,6 +18,7 @@ fn main() {
 struct MyEguiApp {
     lines: Lines<BufReader<File>>,
     paragraph: Vec<RichText>,
+    word_list: Vec<String>,
 }
 
 impl MyEguiApp {
@@ -32,6 +33,7 @@ impl MyEguiApp {
         Self {
             lines,
             paragraph: vec![],
+            word_list: vec![],
         }
     }
 }
@@ -41,8 +43,21 @@ impl eframe::App for MyEguiApp {
         ctx.input(|input_state| {
             if input_state.key_pressed(egui::Key::ArrowDown) {
                 let text = next_paragraph(&mut self.lines);
-                self.paragraph = text.split(" ").map(|token| RichText::from(token)).collect();
-                dbg!(&self.paragraph);
+                self.paragraph = text
+                    .split(" ")
+                    .map(|token| {
+                        let word = token
+                            .chars()
+                            .filter(|c| c.is_alphabetic())
+                            .collect::<String>()
+                            .to_lowercase();
+
+                        if self.word_list.contains(&word) {
+                            return RichText::from(token).color(Color32::GREEN);
+                        }
+                        RichText::from(token)
+                    })
+                    .collect();
             }
         });
 
@@ -80,9 +95,5 @@ fn next_paragraph(lines: &mut Lines<BufReader<File>>) -> String {
         }
 
         return line;
-        // println!("{}\n", line);
-
-        // let english_line = translate_to_english(&line).await.unwrap();
-        // println!("{}\n", english_line);
     }
 }
