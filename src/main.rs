@@ -19,6 +19,7 @@ struct MyEguiApp {
     lines: Lines<BufReader<File>>,
     paragraph: Vec<RichText>,
     word_list: Vec<String>,
+    index: usize,
     history: Vec<String>,
 }
 
@@ -31,12 +32,16 @@ impl MyEguiApp {
         let file = File::open("book.txt").expect("Failed to read file");
         let reader = BufReader::new(file);
         let lines = reader.lines();
-        Self {
+
+        let mut temp = Self {
             lines,
             paragraph: vec![],
-            word_list: vec![],
+            word_list: vec![String::new()],
+            index: 0,
             history: vec![],
-        }
+        };
+        temp.get_history_entry(0);
+        temp
     }
 }
 
@@ -44,9 +49,13 @@ impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.input(|input_state| {
             if input_state.key_pressed(egui::Key::ArrowDown) {
-                let text = next_paragraph(&mut self.lines);
-                self.paragraph = text_to_tokens(&text, &self.word_list);
-                self.history.push(text);
+                self.index += 1;
+                self.get_history_entry(self.index);
+            }
+
+            if input_state.key_pressed(egui::Key::ArrowUp) && self.index != 0 {
+                self.index -= 1;
+                self.get_history_entry(self.index);
             }
         });
 
@@ -65,15 +74,24 @@ impl eframe::App for MyEguiApp {
                         let word = token_to_word(token.text());
                         if !self.word_list.contains(&word) {
                             self.word_list.push(word);
-                            self.paragraph = text_to_tokens(
-                                self.history.last().unwrap_or(&String::new()),
-                                &self.word_list,
-                            );
+                            self.get_history_entry(self.index);
                         }
                     }
                 }
             })
         });
+    }
+}
+
+impl MyEguiApp {
+    fn get_history_entry(&mut self, index: usize) {
+        while index >= self.history.len() {
+            let text = next_paragraph(&mut self.lines);
+
+            self.history.push(text);
+        }
+
+        self.paragraph = text_to_tokens(&self.history[self.index], &self.word_list);
     }
 }
 
