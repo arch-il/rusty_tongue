@@ -19,6 +19,7 @@ struct MyEguiApp {
     lines: Lines<BufReader<File>>,
     paragraph: Vec<RichText>,
     word_list: Vec<String>,
+    history: Vec<String>,
 }
 
 impl MyEguiApp {
@@ -34,6 +35,7 @@ impl MyEguiApp {
             lines,
             paragraph: vec![],
             word_list: vec![],
+            history: vec![],
         }
     }
 }
@@ -43,17 +45,8 @@ impl eframe::App for MyEguiApp {
         ctx.input(|input_state| {
             if input_state.key_pressed(egui::Key::ArrowDown) {
                 let text = next_paragraph(&mut self.lines);
-                self.paragraph = text
-                    .split(" ")
-                    .map(|token| {
-                        let word = token_to_word(token);
-
-                        if self.word_list.contains(&word) {
-                            return RichText::from(token).color(Color32::GREEN);
-                        }
-                        RichText::from(token)
-                    })
-                    .collect();
+                self.paragraph = text_to_tokens(&text, &self.word_list);
+                self.history.push(text);
             }
         });
 
@@ -72,6 +65,10 @@ impl eframe::App for MyEguiApp {
                         let word = token_to_word(token.text());
                         if !self.word_list.contains(&word) {
                             self.word_list.push(word);
+                            self.paragraph = text_to_tokens(
+                                self.history.last().unwrap_or(&String::new()),
+                                &self.word_list,
+                            );
                         }
                     }
                 }
@@ -109,4 +106,17 @@ fn token_to_word(token: &str) -> String {
         .filter(|c| c.is_alphabetic())
         .collect::<String>()
         .to_lowercase()
+}
+
+fn text_to_tokens(text: &str, word_list: &Vec<String>) -> Vec<RichText> {
+    text.split(" ")
+        .map(|token| {
+            let word = token_to_word(token);
+
+            if word_list.contains(&word) {
+                return RichText::from(token).color(Color32::GREEN);
+            }
+            RichText::from(token)
+        })
+        .collect()
 }
