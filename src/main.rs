@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-use eframe::egui::{self, Color32, RichText, Widget};
+use eframe::egui::{self, Color32, Rect, RichText, Widget};
 use rust_translate::translate_to_english;
 
 fn main() {
@@ -60,7 +60,10 @@ impl MyEguiApp {
 
 impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let mut screen_rect = Rect::ZERO;
+
         ctx.input(|input_state| {
+            screen_rect = input_state.screen_rect();
             if input_state.key_pressed(egui::Key::ArrowDown) {
                 self.index += 1;
                 self.get_history_entry(self.index);
@@ -71,6 +74,25 @@ impl eframe::App for MyEguiApp {
                 self.get_history_entry(self.index);
             }
         });
+
+        const SIDE_PANEL_WIDTH: f32 = 100.0;
+
+        egui::SidePanel::right("Info Panel")
+            .exact_width(SIDE_PANEL_WIDTH)
+            .show(ctx, |ui| {
+                ui.heading("Dictionary");
+
+                let (mut learning, mut mastered) = (0, 0);
+                for (_, (_, word_status)) in self.word_list.iter() {
+                    match word_status {
+                        WordStatus::Learning => learning += 1,
+                        WordStatus::Mastered => mastered += 1,
+                    }
+                }
+
+                ui.label(format!("learning: {learning}"));
+                ui.label(format!("mastered: {mastered}"));
+            });
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Reading Area");
