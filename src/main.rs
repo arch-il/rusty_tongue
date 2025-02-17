@@ -3,36 +3,64 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-use console::{Key, Style, Term};
-use rust_translate::translate_to_english;
+use eframe::egui::{self, RichText};
 
-mod action;
-use action::Action;
+fn main() {
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Rusty Tongue",
+        native_options,
+        Box::new(|cc| Ok(Box::new(MyEguiApp::new(cc)))),
+    )
+    .unwrap();
+}
 
-#[tokio::main]
-async fn main() {
-    let term = Term::stdout();
+struct MyEguiApp {
+    lines: Lines<BufReader<File>>,
+    paragraph: Vec<RichText>,
+}
 
-    let file = File::open("book.txt").expect("Failed to read file");
-    let reader = BufReader::new(file);
-    let mut lines = reader.lines();
-
-    loop {
-        let action = input(&term);
-
-        match action {
-            Action::NextPage => draw(&mut lines).await,
-            Action::Exit => {
-                term.clear_screen().expect("Failed while clearing screen");
-                break;
-            }
-
-            Action::None => continue,
+impl MyEguiApp {
+    fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+        // Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
+        // Restore app state using cc.storage (requires the "persistence" feature).
+        // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
+        // for e.g. egui::PaintCallback.
+        let file = File::open("book.txt").expect("Failed to read file");
+        let reader = BufReader::new(file);
+        let lines = reader.lines();
+        Self {
+            lines,
+            paragraph: vec![],
         }
     }
 }
 
-async fn draw(lines: &mut Lines<BufReader<File>>) {
+impl eframe::App for MyEguiApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        ctx.input(|input_state| {
+            if input_state.key_pressed(egui::Key::ArrowDown) {
+                let text = next_paragraph(&mut self.lines);
+                self.paragraph = text.split(" ").map(|token| RichText::from(token)).collect();
+                dbg!(&self.paragraph);
+            }
+        });
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Reading Area");
+
+            // ? Why do I need horizontal with labels?
+            ui.horizontal_wrapped(|ui| {
+                // ! Try to remove clone here
+                for token in self.paragraph.clone().into_iter() {
+                    ui.label(token);
+                }
+            })
+        });
+    }
+}
+
+fn next_paragraph(lines: &mut Lines<BufReader<File>>) -> String {
     loop {
         let line = match lines.next() {
             Some(line) => line,
@@ -51,23 +79,10 @@ async fn draw(lines: &mut Lines<BufReader<File>>) {
             continue;
         }
 
-        println!("{}\n", line);
+        return line;
+        // println!("{}\n", line);
 
-        let english_line = translate_to_english(&line).await.unwrap();
-        let style = Style::new().black().on_white();
-        println!("{}\n", style.apply_to(english_line));
-
-        break;
-    }
-}
-
-fn input(term: &Term) -> Action {
-    let key = term.read_key().expect("Error while reading a key");
-
-    match key {
-        Key::ArrowDown => Action::NextPage,
-        Key::Escape | Key::Char('q') => Action::Exit,
-
-        _ => Action::None,
+        // let english_line = translate_to_english(&line).await.unwrap();
+        // println!("{}\n", english_line);
     }
 }
