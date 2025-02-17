@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::File,
     io::{BufRead, BufReader, Lines},
 };
@@ -15,10 +16,16 @@ fn main() {
     .unwrap();
 }
 
+#[derive(Clone)]
+enum WordStatus {
+    Learning,
+    Mastered,
+}
+
 struct MyEguiApp {
     lines: Lines<BufReader<File>>,
     paragraph: Vec<RichText>,
-    word_list: Vec<String>,
+    word_list: HashMap<String, (String, WordStatus)>,
     index: usize,
     history: Vec<String>,
 }
@@ -33,10 +40,15 @@ impl MyEguiApp {
         let reader = BufReader::new(file);
         let lines = reader.lines();
 
+        let word_list = [(String::new(), (String::new(), WordStatus::Mastered))]
+            .iter()
+            .cloned()
+            .collect::<HashMap<String, (String, WordStatus)>>();
+
         let mut temp = Self {
             lines,
             paragraph: vec![],
-            word_list: vec![String::new()],
+            word_list,
             index: 0,
             history: vec![],
         };
@@ -72,8 +84,9 @@ impl eframe::App for MyEguiApp {
 
                     if label_button.clicked() {
                         let word = token_to_word(token.text());
-                        if !self.word_list.contains(&word) {
-                            self.word_list.push(word);
+                        if !self.word_list.keys().any(|x| x == &word) {
+                            self.word_list
+                                .insert(word, (String::new(), WordStatus::Learning));
                             self.get_history_entry(self.index);
                         }
                     }
@@ -126,15 +139,18 @@ fn token_to_word(token: &str) -> String {
         .to_lowercase()
 }
 
-fn text_to_tokens(text: &str, word_list: &Vec<String>) -> Vec<RichText> {
+fn text_to_tokens(text: &str, word_list: &HashMap<String, (String, WordStatus)>) -> Vec<RichText> {
     text.split(" ")
         .map(|token| {
             let word = token_to_word(token);
 
-            if word_list.contains(&word) {
-                return RichText::from(token).color(Color32::GREEN);
+            if let Some((_, word_status)) = word_list.get(&word) {
+                return match &word_status {
+                    WordStatus::Learning => RichText::from(token).color(Color32::YELLOW),
+                    WordStatus::Mastered => RichText::from(token),
+                };
             }
-            RichText::from(token)
+            RichText::from(token).color(Color32::RED)
         })
         .collect()
 }
