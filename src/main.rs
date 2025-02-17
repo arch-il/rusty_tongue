@@ -34,8 +34,9 @@ struct MyEguiApp {
     paragraph: Vec<RichText>,
 
     dictionary: LinkedHashMap<String, (String, WordStatus)>,
-    dictionary_open: bool,
     index: usize,
+    dictionary_open: bool,
+    search_text: String,
 
     text_history: Vec<String>,
     translate_history: StaticRb<(String, String), 100>,
@@ -61,8 +62,9 @@ impl MyEguiApp {
             paragraph: vec![],
 
             dictionary: word_list,
-            dictionary_open: false,
             index: 0,
+            dictionary_open: false,
+            search_text: String::new(),
 
             text_history: vec![],
             translate_history: StaticRb::<(String, String), 100>::default(),
@@ -107,15 +109,40 @@ impl eframe::App for MyEguiApp {
                     self.dictionary_open = !self.dictionary_open;
                 }
 
-                // if self.dictionary_open {
                 egui::Window::new("Dictionary")
                     .open(&mut self.dictionary_open)
+                    .resizable(true)
+                    .max_width(200.0)
                     .show(ctx, |ui| {
-                        for (from, (to, _status)) in self.dictionary.iter().skip(1).rev() {
-                            ui.label(format!("{from} - {to}"));
+                        ui.horizontal(|ui| {
+                            ui.label("Search:");
+
+                            ui.text_edit_singleline(&mut self.search_text);
+
+                            if ui.button("❌").clicked() {
+                                self.search_text = String::new();
+                            }
+                        });
+
+                        for (from, (to, status)) in self.dictionary.iter().skip(1).rev() {
+                            if !from.contains(&self.search_text) && !to.contains(&self.search_text)
+                            {
+                                continue;
+                            }
+
+                            ui.horizontal(|ui| {
+                                let _ = match status {
+                                    WordStatus::Learning => ui.label(
+                                        RichText::from(format!("📖")).color(Color32::YELLOW),
+                                    ),
+                                    WordStatus::Mastered => ui
+                                        .label(RichText::from(format!("✅")).color(Color32::GREEN)),
+                                };
+
+                                ui.label(format!("{from} - {to}"));
+                            });
                         }
                     });
-                // }
 
                 let (mut learning, mut mastered) = (0, 0);
                 for (_, (_, word_status)) in self.dictionary.iter() {
