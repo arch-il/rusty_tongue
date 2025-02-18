@@ -22,6 +22,8 @@ impl MyEguiApp {
                 );
                 // ? Why do I need horizontal with labels?
                 ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing = Vec2::new(3.5, 3.0);
+
                     // ! Try to remove clone here
                     for token in self.paragraph.clone().iter() {
                         let label_button = egui::Label::new(token.clone())
