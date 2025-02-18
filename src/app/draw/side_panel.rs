@@ -97,21 +97,11 @@ impl MyEguiApp {
         if !self.translate_history.is_empty() {
             ui.horizontal(|ui| {
                 if ui.button("Mark Mastered").clicked() {
-                    let from = &self.translate_history.last().unwrap().0;
-
-                    self.database
-                        .update_status_by_from(from, WordStatus::Mastered);
-
-                    self.get_history_entry();
+                    self.update_last_words_status(WordStatus::Mastered);
                 }
 
                 if ui.button("Not A Word").clicked() {
-                    let from = &self.translate_history.last().unwrap().0;
-
-                    self.database
-                        .update_status_by_from(from, WordStatus::NotAWord);
-
-                    self.get_history_entry();
+                    self.update_last_words_status(WordStatus::NotAWord);
                 }
             });
         }
@@ -136,5 +126,13 @@ impl MyEguiApp {
                 ui.label(format!("{from} - {to}"));
             }
         });
+    }
+
+    pub fn update_last_words_status(&mut self, status: WordStatus) {
+        let from = &self.translate_history.last().unwrap().0;
+
+        self.database.update_status_by_from(from, status);
+
+        self.get_history_entry();
     }
 }
