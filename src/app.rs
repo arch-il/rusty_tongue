@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-use eframe::egui::{self, Color32, Rect, RichText, Widget};
+use eframe::egui::{self, Color32, Rect, RichText, Sense, Vec2, Widget};
 use ringbuf::{
     traits::{Consumer, Observer, Producer, SplitRef},
     StaticRb,
@@ -93,6 +93,7 @@ impl eframe::App for MyEguiApp {
                     .open(&mut self.dictionary_open)
                     .resizable(true)
                     .max_width(200.0)
+                    .max_height(200.0)
                     .show(ctx, |ui| {
                         ui.horizontal(|ui| {
                             ui.label("Search:");
@@ -104,23 +105,33 @@ impl eframe::App for MyEguiApp {
                             }
                         });
 
-                        for t in self.database.get_by_search(&self.search_text).iter().rev() {
-                            ui.horizontal(|ui| {
-                                let temp = match t.status {
-                                    WordStatus::Learning => Some(ui.label(
-                                        RichText::from(format!("📖")).color(Color32::YELLOW),
-                                    )),
-                                    WordStatus::Mastered => Some(ui.label(
-                                        RichText::from(format!("✅")).color(Color32::GREEN),
-                                    )),
-                                    _ => None,
-                                };
+                        egui::ScrollArea::vertical().show(ui, |ui| {
+                            ui.allocate_at_least(
+                                Vec2 {
+                                    x: ui.available_width(),
+                                    y: 0.0,
+                                },
+                                Sense::empty(),
+                            );
 
-                                if temp.is_some() {
-                                    ui.label(format!("{} - {}", t.from, t.to));
-                                }
-                            });
-                        }
+                            for t in self.database.get_by_search(&self.search_text).iter().rev() {
+                                ui.horizontal(|ui| {
+                                    let temp = match t.status {
+                                        WordStatus::Learning => Some(ui.label(
+                                            RichText::from(format!("📖")).color(Color32::YELLOW),
+                                        )),
+                                        WordStatus::Mastered => Some(ui.label(
+                                            RichText::from(format!("✅")).color(Color32::GREEN),
+                                        )),
+                                        _ => None,
+                                    };
+
+                                    if temp.is_some() {
+                                        ui.label(format!("{} - {}", t.from, t.to));
+                                    }
+                                });
+                            }
+                        })
                     });
 
                 // ! Move this to SQL
@@ -140,24 +151,45 @@ impl eframe::App for MyEguiApp {
                 ui.heading("History");
 
                 if !self.translate_history.is_empty() {
-                    if ui.button("Mark Mastered").clicked() {
-                        let from = &self.translate_history.last().unwrap().0;
+                    ui.horizontal(|ui| {
+                        if ui.button("Mark Mastered").clicked() {
+                            let from = &self.translate_history.last().unwrap().0;
 
-                        self.database
-                            .update_status_by_from(from, WordStatus::Mastered);
+                            self.database
+                                .update_status_by_from(from, WordStatus::Mastered);
 
-                        self.get_history_entry(self.index);
+                            self.get_history_entry(self.index);
+                        }
+
+                        if ui.button("Not A Word").clicked() {
+                            let from = &self.translate_history.last().unwrap().0;
+
+                            self.database
+                                .update_status_by_from(from, WordStatus::NotAWord);
+
+                            self.get_history_entry(self.index);
+                        }
+                    });
+                }
+
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.allocate_at_least(
+                        Vec2 {
+                            x: ui.available_width(),
+                            y: 0.0,
+                        },
+                        Sense::empty(),
+                    );
+
+                    let mut iter = self.translate_history.iter().rev();
+                    if let Some((from, to)) = iter.next() {
+                        ui.label(RichText::from(format!("{from} - {to}")).color(Color32::YELLOW));
                     }
-                }
 
-                let mut iter = self.translate_history.iter().rev();
-                if let Some((from, to)) = iter.next() {
-                    ui.label(RichText::from(format!("{from} - {to}")).color(Color32::YELLOW));
-                }
-
-                for (from, to) in iter {
-                    ui.label(format!("{from} - {to}"));
-                }
+                    for (from, to) in iter {
+                        ui.label(format!("{from} - {to}"));
+                    }
+                });
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {

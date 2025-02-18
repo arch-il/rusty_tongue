@@ -131,7 +131,8 @@ impl Database {
     pub fn get_by_search(&self, search: &str) -> Vec<Translation> {
         let stmt = self.conn.prepare(
             "SELECT * FROM dictionary 
-                WHERE word LIKE '%' || ?1 || '%' OR translated LIKE '%' || ?1 || '%'",
+                WHERE NOT status = 0 
+                AND (word LIKE '%' || ?1 || '%' OR translated LIKE '%' || ?1 || '%')",
         );
 
         if stmt.is_err() {
