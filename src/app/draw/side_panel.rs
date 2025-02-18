@@ -63,6 +63,32 @@ impl MyEguiApp {
                     }
                 });
 
+                ui.horizontal(|ui| {
+                    ui.label("Filter:");
+
+                    if ui.selectable_label(self.search_filter.0, "❌").clicked() {
+                        self.search_filter.0 = !self.search_filter.0;
+                    }
+                    if ui
+                        .selectable_label(
+                            self.search_filter.1,
+                            RichText::from("📖").color(Color32::YELLOW),
+                        )
+                        .clicked()
+                    {
+                        self.search_filter.1 = !self.search_filter.1;
+                    }
+                    if ui
+                        .selectable_label(
+                            self.search_filter.2,
+                            RichText::from("✅").color(Color32::GREEN),
+                        )
+                        .clicked()
+                    {
+                        self.search_filter.2 = !self.search_filter.2;
+                    }
+                });
+
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.allocate_at_least(
                         Vec2 {
@@ -72,21 +98,37 @@ impl MyEguiApp {
                         Sense::empty(),
                     );
 
-                    for t in self.database.get_by_search(&self.search_text).iter().rev() {
+                    // ? maybe move this to SQL
+                    let mut status_filter = Vec::new();
+                    if self.search_filter.0 {
+                        status_filter.push(WordStatus::NotAWord);
+                    }
+                    if self.search_filter.1 {
+                        status_filter.push(WordStatus::Learning);
+                    }
+                    if self.search_filter.2 {
+                        status_filter.push(WordStatus::Mastered);
+                    }
+
+                    for t in self
+                        .database
+                        .get_by_search(&self.search_text)
+                        .iter()
+                        .filter(|t| status_filter.contains(&t.status))
+                        .rev()
+                    {
                         ui.horizontal(|ui| {
-                            let temp = match t.status {
+                            match t.status {
+                                WordStatus::NotAWord => ui.label("❌"),
                                 WordStatus::Learning => {
-                                    Some(ui.label(RichText::from("📖").color(Color32::YELLOW)))
+                                    ui.label(RichText::from("📖").color(Color32::YELLOW))
                                 }
                                 WordStatus::Mastered => {
-                                    Some(ui.label(RichText::from("✅").color(Color32::GREEN)))
+                                    ui.label(RichText::from("✅").color(Color32::GREEN))
                                 }
-                                _ => None,
                             };
 
-                            if temp.is_some() {
-                                ui.label(format!("{} - {}", t.from, t.to));
-                            }
+                            ui.label(format!("{} - {}", t.from, t.to));
                         });
                     }
                 })
