@@ -7,7 +7,7 @@ use eframe::egui::{Vec2, ViewportBuilder};
 
 fn main() {
     let native_options = eframe::NativeOptions {
-        viewport: ViewportBuilder::default().with_inner_size(Vec2::new(600.0, 480.0)),
+        viewport: ViewportBuilder::default().with_inner_size(Vec2::new(600.0, 400.0)),
         ..Default::default()
     };
 
