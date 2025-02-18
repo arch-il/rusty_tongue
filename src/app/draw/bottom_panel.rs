@@ -3,7 +3,7 @@ use eframe::egui;
 use crate::app::MyEguiApp;
 
 impl MyEguiApp {
-    pub fn draw_below_panel(&mut self, ctx: &egui::Context) {
+    pub fn draw_bottom_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("Progress").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 let pos = self.index + 1;

@@ -161,7 +161,7 @@ impl Database {
 
         let mut stmt = stmt.unwrap();
 
-        stmt.query_row([], |row| Ok(row.get(0)?)).unwrap()
+        stmt.query_row([], |row| row.get(0)).unwrap()
     }
 
     pub fn count_by_status(&self, status: WordStatus) -> usize {
@@ -177,7 +177,6 @@ impl Database {
 
         let mut stmt = stmt.unwrap();
 
-        stmt.query_row([status as usize], |row| Ok(row.get(0)?))
-            .unwrap()
+        stmt.query_row([status as usize], |row| row.get(0)).unwrap()
     }
 }
