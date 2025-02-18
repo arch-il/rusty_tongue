@@ -119,13 +119,9 @@ impl Database {
                 })
             })
             .unwrap()
-            .into_iter()
             .next();
 
-        match entry {
-            Some(entry) => Some(entry.unwrap()),
-            None => None,
-        }
+        entry.map(|entry| entry.unwrap())
     }
 
     pub fn get_by_search(&self, search: &str) -> Vec<Translation> {

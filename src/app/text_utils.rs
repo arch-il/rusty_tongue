@@ -61,7 +61,7 @@ pub fn translate_text(text: &str) -> String {
         .build()
         .unwrap()
         .block_on(async {
-            translate_to_english(&text)
+            translate_to_english(text)
                 .await
                 .expect("Failed translating text")
         })

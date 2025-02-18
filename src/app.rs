@@ -117,12 +117,12 @@ impl eframe::App for MyEguiApp {
                             for t in self.database.get_by_search(&self.search_text).iter().rev() {
                                 ui.horizontal(|ui| {
                                     let temp = match t.status {
-                                        WordStatus::Learning => Some(ui.label(
-                                            RichText::from(format!("📖")).color(Color32::YELLOW),
-                                        )),
-                                        WordStatus::Mastered => Some(ui.label(
-                                            RichText::from(format!("✅")).color(Color32::GREEN),
-                                        )),
+                                        WordStatus::Learning => Some(
+                                            ui.label(RichText::from("📖").color(Color32::YELLOW)),
+                                        ),
+                                        WordStatus::Mastered => Some(
+                                            ui.label(RichText::from("✅").color(Color32::GREEN)),
+                                        ),
                                         _ => None,
                                     };
 
