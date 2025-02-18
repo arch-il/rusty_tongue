@@ -33,7 +33,14 @@ impl MyEguiApp {
             })
             .clicked()
         {
-            self.dictionary_open = !self.dictionary_open;
+            self.toggle_dictionary_pop_up(ui.ctx());
+        }
+    }
+
+    pub fn toggle_dictionary_pop_up(&mut self, ctx: &egui::Context) {
+        self.dictionary_open = !self.dictionary_open;
+        if self.dictionary_open {
+            ctx.memory_mut(|mem| mem.request_focus(self.search_id));
         }
     }
 
@@ -47,7 +54,9 @@ impl MyEguiApp {
                 ui.horizontal(|ui| {
                     ui.label("Search:");
 
-                    ui.text_edit_singleline(&mut self.search_text);
+                    egui::TextEdit::singleline(&mut self.search_text)
+                        .id(self.search_id)
+                        .show(ui);
 
                     if ui.button("❌").clicked() {
                         self.search_text = String::new();

@@ -15,10 +15,11 @@ impl MyEguiApp {
                     ui.label("loc:");
 
                     let mut search_text = self.index.to_string();
-                    let text_edit = egui::TextEdit::singleline(&mut search_text)
+                    egui::TextEdit::singleline(&mut search_text)
                         .clip_text(false)
-                        .desired_width(0.0);
-                    ui.add(text_edit).clicked();
+                        .desired_width(0.0)
+                        .id(self.location_id)
+                        .show(ui);
                     let temp = search_text.parse().unwrap_or(self.index);
                     if temp != self.index {
                         self.index = temp;

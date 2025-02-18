@@ -1,6 +1,6 @@
-use eframe::egui::{self, RichText};
+use eframe::egui::{self, Key, RichText};
 use ringbuf::StaticRb;
-use std::{fs::File, io::Read};
+use std::{collections::HashSet, fs::File, io::Read};
 
 use crate::database::Database;
 
@@ -12,12 +12,16 @@ pub struct MyEguiApp {
     lines: Vec<String>,
     index: usize,
     paragraph: Vec<RichText>,
+    location_id: egui::Id,
 
     database: Database,
     dictionary_open: bool,
     search_text: String,
+    search_id: egui::Id,
 
     translate_history: StaticRb<(String, String), 100>,
+
+    prev_keys_down: HashSet<Key>,
 }
 
 impl MyEguiApp {
@@ -48,12 +52,16 @@ impl MyEguiApp {
             lines,
             index: 0,
             paragraph: vec![],
+            location_id: egui::Id::new("location id"),
 
             database: Database::new(),
             dictionary_open: false,
             search_text: String::new(),
+            search_id: egui::Id::new("dictionary search id"),
 
             translate_history: StaticRb::<(String, String), 100>::default(),
+
+            prev_keys_down: HashSet::new(),
         };
         temp.get_history_entry();
 
