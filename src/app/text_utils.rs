@@ -1,6 +1,6 @@
 use eframe::egui::{Color32, RichText};
 use ringbuf::traits::{Consumer, Observer, Producer, SplitRef};
-use rust_translate::translate_to_english;
+use rust_translate::translate;
 
 use crate::database::{Database, WordStatus};
 
@@ -30,7 +30,7 @@ pub fn translate_text(text: &str) -> String {
         .build()
         .unwrap()
         .block_on(async {
-            translate_to_english(text)
+            translate(text, "de", "en")
                 .await
                 .expect("Failed translating text")
         })
