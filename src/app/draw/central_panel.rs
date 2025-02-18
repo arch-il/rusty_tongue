@@ -41,7 +41,7 @@ impl MyEguiApp {
                                     status: WordStatus::Learning,
                                 });
 
-                                self.get_history_entry(self.index);
+                                self.get_history_entry();
                             }
                         }
                     }

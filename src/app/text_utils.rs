@@ -1,8 +1,3 @@
-use std::{
-    fs::File,
-    io::{BufReader, Lines},
-};
-
 use eframe::egui::{Color32, RichText};
 use ringbuf::traits::{Consumer, Observer, Producer, SplitRef};
 use rust_translate::translate_to_english;
@@ -12,14 +7,12 @@ use crate::database::{Database, WordStatus};
 use super::MyEguiApp;
 
 impl MyEguiApp {
-    pub fn get_history_entry(&mut self, index: usize) {
-        while index >= self.text_history.len() {
-            let text = next_paragraph(&mut self.lines);
-
-            self.text_history.push(text);
+    pub fn get_history_entry(&mut self) {
+        if self.index >= self.lines.len() {
+            self.index = self.lines.len() - 1;
         }
 
-        self.paragraph = text_to_tokens(&self.text_history[self.index], &self.database);
+        self.paragraph = text_to_tokens(&self.lines[self.index], &self.database);
     }
 
     pub fn record_translate_history(&mut self, from: &str, to: &str) {
@@ -49,29 +42,6 @@ pub fn token_to_word(token: &str) -> String {
         .filter(|c| c.is_alphabetic())
         .collect::<String>()
         .to_lowercase()
-}
-
-fn next_paragraph(lines: &mut Lines<BufReader<File>>) -> String {
-    loop {
-        let line = match lines.next() {
-            Some(line) => line,
-            None => continue,
-        };
-
-        let line = match line {
-            Ok(line) => line,
-            Err(e) => {
-                println!("Error while reading a line {e}");
-                continue;
-            }
-        };
-
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        return line;
-    }
 }
 
 fn text_to_tokens(text: &str, database: &Database) -> Vec<RichText> {

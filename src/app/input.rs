@@ -7,12 +7,12 @@ impl MyEguiApp {
         ctx.input(|input_state| {
             if input_state.key_pressed(egui::Key::ArrowDown) {
                 self.index += 1;
-                self.get_history_entry(self.index);
+                self.get_history_entry();
             }
 
             if input_state.key_pressed(egui::Key::ArrowUp) && self.index != 0 {
                 self.index -= 1;
-                self.get_history_entry(self.index);
+                self.get_history_entry();
             }
         });
     }

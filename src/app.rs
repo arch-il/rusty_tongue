@@ -1,9 +1,6 @@
 use eframe::egui::{self, RichText};
 use ringbuf::StaticRb;
-use std::{
-    fs::File,
-    io::{BufRead, BufReader, Lines},
-};
+use std::{fs::File, io::Read};
 
 use crate::database::Database;
 
@@ -12,15 +9,14 @@ mod input;
 mod text_utils;
 
 pub struct MyEguiApp {
-    lines: Lines<BufReader<File>>,
+    lines: Vec<String>,
+    index: usize,
     paragraph: Vec<RichText>,
 
     database: Database,
     dictionary_open: bool,
     search_text: String,
 
-    text_history: Vec<String>,
-    index: usize,
     translate_history: StaticRb<(String, String), 100>,
 }
 
@@ -30,23 +26,37 @@ impl MyEguiApp {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        let file = File::open("book.txt").expect("Failed to read file");
-        let reader = BufReader::new(file);
-        let lines = reader.lines();
+
+        let mut lines = String::new();
+        File::open("book.txt")
+            .expect("Failed to read file")
+            .read_to_string(&mut lines)
+            .expect("Failed while reaing a file");
+        let lines = lines
+            .split("\n")
+            .filter_map(|s| {
+                let trimmed = s.trim();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed.to_string())
+                }
+            })
+            .collect::<Vec<_>>();
 
         let mut temp = Self {
             lines,
+            index: 0,
             paragraph: vec![],
 
             database: Database::new(),
             dictionary_open: false,
             search_text: String::new(),
 
-            text_history: vec![],
-            index: 0,
             translate_history: StaticRb::<(String, String), 100>::default(),
         };
-        temp.get_history_entry(0);
+        temp.get_history_entry();
+
         temp
     }
 }

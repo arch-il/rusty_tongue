@@ -102,7 +102,7 @@ impl MyEguiApp {
                     self.database
                         .update_status_by_from(from, WordStatus::Mastered);
 
-                    self.get_history_entry(self.index);
+                    self.get_history_entry();
                 }
 
                 if ui.button("Not A Word").clicked() {
@@ -111,7 +111,7 @@ impl MyEguiApp {
                     self.database
                         .update_status_by_from(from, WordStatus::NotAWord);
 
-                    self.get_history_entry(self.index);
+                    self.get_history_entry();
                 }
             });
         }
