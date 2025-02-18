@@ -8,9 +8,8 @@ use ringbuf::{
     traits::{Consumer, Observer, Producer, SplitRef},
     StaticRb,
 };
-use ritelinked::LinkedHashMap;
 
-use crate::word_status::WordStatus;
+use crate::database::{Database, Translation, WordStatus};
 
 mod text_utils;
 
@@ -18,12 +17,13 @@ pub struct MyEguiApp {
     lines: Lines<BufReader<File>>,
     paragraph: Vec<RichText>,
 
-    dictionary: LinkedHashMap<String, (String, WordStatus)>,
-    index: usize,
+    database: Database,
+    // dictionary: LinkedHashMap<String, (String, WordStatus)>,
     dictionary_open: bool,
     search_text: String,
 
     text_history: Vec<String>,
+    index: usize,
     translate_history: StaticRb<(String, String), 100>,
 }
 
@@ -37,21 +37,16 @@ impl MyEguiApp {
         let reader = BufReader::new(file);
         let lines = reader.lines();
 
-        let word_list = [(String::new(), (String::new(), WordStatus::Mastered))]
-            .iter()
-            .cloned()
-            .collect::<LinkedHashMap<String, (String, WordStatus)>>();
-
         let mut temp = Self {
             lines,
             paragraph: vec![],
 
-            dictionary: word_list,
-            index: 0,
+            database: Database::new(),
             dictionary_open: false,
             search_text: String::new(),
 
             text_history: vec![],
+            index: 0,
             translate_history: StaticRb::<(String, String), 100>::default(),
         };
         temp.get_history_entry(0);
@@ -109,31 +104,39 @@ impl eframe::App for MyEguiApp {
                             }
                         });
 
-                        for (from, (to, status)) in self.dictionary.iter().skip(1).rev() {
-                            if !from.contains(&self.search_text) && !to.contains(&self.search_text)
+                        for t in self.database.get_all().iter().rev() {
+                            // ! move this to SQL
+                            if !t.from.contains(&self.search_text)
+                                && !t.to.contains(&self.search_text)
                             {
                                 continue;
                             }
 
                             ui.horizontal(|ui| {
-                                let _ = match status {
-                                    WordStatus::Learning => ui.label(
+                                let temp = match t.status {
+                                    WordStatus::Learning => Some(ui.label(
                                         RichText::from(format!("📖")).color(Color32::YELLOW),
-                                    ),
-                                    WordStatus::Mastered => ui
-                                        .label(RichText::from(format!("✅")).color(Color32::GREEN)),
+                                    )),
+                                    WordStatus::Mastered => Some(ui.label(
+                                        RichText::from(format!("✅")).color(Color32::GREEN),
+                                    )),
+                                    _ => None,
                                 };
 
-                                ui.label(format!("{from} - {to}"));
+                                if temp.is_some() {
+                                    ui.label(format!("{} - {}", t.from, t.to));
+                                }
                             });
                         }
                     });
 
+                // ! Move this to SQL
                 let (mut learning, mut mastered) = (0, 0);
-                for (_, (_, word_status)) in self.dictionary.iter() {
-                    match word_status {
+                for t in self.database.get_all().iter() {
+                    match t.status {
                         WordStatus::Learning => learning += 1,
                         WordStatus::Mastered => mastered += 1,
+                        _ => (),
                     }
                 }
 
@@ -145,9 +148,10 @@ impl eframe::App for MyEguiApp {
 
                 if !self.translate_history.is_empty() {
                     if ui.button("Mark Mastered").clicked() {
-                        let word = &self.translate_history.last().unwrap().0;
-                        let (_, word_status) = self.dictionary.get_mut(word).unwrap();
-                        *word_status = WordStatus::Mastered;
+                        let from = &self.translate_history.last().unwrap().0;
+
+                        self.database
+                            .update_status_by_from(from, WordStatus::Mastered);
 
                         self.get_history_entry(self.index);
                     }
@@ -155,13 +159,7 @@ impl eframe::App for MyEguiApp {
 
                 let mut iter = self.translate_history.iter().rev();
                 if let Some((from, to)) = iter.next() {
-                    let color = if self.dictionary.get(from).unwrap().1 == WordStatus::Learning {
-                        Color32::YELLOW
-                    } else {
-                        Color32::GRAY
-                    };
-
-                    ui.label(RichText::from(format!("{from} - {to}")).color(color));
+                    ui.label(RichText::from(format!("{from} - {to}")).color(Color32::YELLOW));
                 }
 
                 for (from, to) in iter {
@@ -181,14 +179,17 @@ impl eframe::App for MyEguiApp {
                         .ui(ui);
 
                     if label_button.clicked() {
-                        let word = text_utils::token_to_word(token.text());
-                        let translated_word = text_utils::translate_text(&word);
+                        let from = text_utils::token_to_word(token.text());
+                        let to = text_utils::translate_text(&from);
 
-                        self.record_translate_history(&word, &translated_word);
+                        self.record_translate_history(&from, &to);
 
-                        if !self.dictionary.keys().any(|x| x == &word) {
-                            self.dictionary
-                                .insert(word, (translated_word, WordStatus::Learning));
+                        if self.database.get_by_from(&from).is_none() {
+                            self.database.insert(&Translation {
+                                from,
+                                to,
+                                status: WordStatus::Learning,
+                            });
 
                             self.get_history_entry(self.index);
                         }
@@ -207,8 +208,7 @@ impl MyEguiApp {
             self.text_history.push(text);
         }
 
-        self.paragraph =
-            text_utils::text_to_tokens(&self.text_history[self.index], &self.dictionary);
+        self.paragraph = text_utils::text_to_tokens(&self.text_history[self.index], &self.database);
     }
 
     fn record_translate_history(&mut self, from: &str, to: &str) {

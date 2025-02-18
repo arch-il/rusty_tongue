@@ -4,10 +4,9 @@ use std::{
 };
 
 use eframe::egui::{Color32, RichText};
-use ritelinked::LinkedHashMap;
 use rust_translate::translate_to_english;
 
-use crate::word_status::WordStatus;
+use crate::database::{Database, WordStatus};
 
 pub fn next_paragraph(lines: &mut Lines<BufReader<File>>) -> String {
     loop {
@@ -40,18 +39,15 @@ pub fn token_to_word(token: &str) -> String {
         .to_lowercase()
 }
 
-pub fn text_to_tokens(
-    text: &str,
-    word_list: &LinkedHashMap<String, (String, WordStatus)>,
-) -> Vec<RichText> {
+pub fn text_to_tokens(text: &str, database: &Database) -> Vec<RichText> {
     text.split(" ")
         .map(|token| {
-            let word = token_to_word(token);
+            let from = token_to_word(token);
 
-            if let Some((_, word_status)) = word_list.get(&word) {
-                return match &word_status {
+            if let Some(t) = database.get_by_from(&from) {
+                return match &t.status {
                     WordStatus::Learning => RichText::from(token).color(Color32::YELLOW),
-                    WordStatus::Mastered => RichText::from(token),
+                    WordStatus::Mastered | WordStatus::NotAWord => RichText::from(token),
                 };
             }
             RichText::from(token).color(Color32::RED)

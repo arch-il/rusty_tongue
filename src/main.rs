@@ -1,8 +1,9 @@
 mod app;
 use app::MyEguiApp;
-use eframe::egui::{Vec2, ViewportBuilder};
 
-mod word_status;
+mod database;
+
+use eframe::egui::{Vec2, ViewportBuilder};
 
 fn main() {
     let mut native_options = eframe::NativeOptions::default();
