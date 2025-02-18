@@ -22,18 +22,22 @@ impl MyEguiApp {
         }
         let _ = prod.try_push((from.to_string(), to.to_string()));
     }
-}
 
-pub fn translate_text(text: &str) -> String {
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async {
-            translate(text, "de", "en")
-                .await
-                .expect("Failed translating text")
-        })
+    pub fn translate_text(&self, text: &str) -> String {
+        if let Some(t) = self.database.get_by_from(text) {
+            return t.to;
+        }
+
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                translate(text, "de", "en")
+                    .await
+                    .expect("Failed translating text")
+            })
+    }
 }
 
 pub fn token_to_word(token: &str) -> String {

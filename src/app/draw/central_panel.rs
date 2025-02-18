@@ -30,7 +30,7 @@ impl MyEguiApp {
 
                         if label_button.clicked() {
                             let from = text_utils::token_to_word(token.text());
-                            let to = text_utils::translate_text(&from);
+                            let to = self.translate_text(&from);
 
                             self.record_translate_history(&from, &to);
 
