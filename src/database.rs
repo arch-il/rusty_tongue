@@ -32,8 +32,7 @@ impl Database {
 
         let database = Self { conn };
 
-        // ! move this to SQL
-        if database.get_all().is_empty() {
+        if database.count() == 0 {
             database.insert(&Translation {
                 from: String::new(),
                 to: String::new(),
@@ -66,6 +65,7 @@ impl Database {
             .expect("Failed to update dictionary");
     }
 
+    #[allow(unused)] // ? Remove if not necessary
     pub fn get_all(&self) -> Vec<Translation> {
         let stmt = self.conn.prepare("SELECT * FROM dictionary");
 
@@ -103,25 +103,20 @@ impl Database {
 
         let mut stmt = stmt.unwrap();
 
-        // .expect("failed to get translation");
-
-        let entry = stmt
-            .query_map([from], |row| {
-                Ok(Translation {
-                    from: row.get(1)?,
-                    to: row.get(2)?,
-                    status: match row.get(3)? {
-                        0 => WordStatus::NotAWord,
-                        1 => WordStatus::Learning,
-                        2 => WordStatus::Mastered,
-                        _ => panic!("Dictionary has wrong entry in status"),
-                    },
-                })
+        let entry = stmt.query_row([from], |row| {
+            Ok(Translation {
+                from: row.get(1)?,
+                to: row.get(2)?,
+                status: match row.get(3)? {
+                    0 => WordStatus::NotAWord,
+                    1 => WordStatus::Learning,
+                    2 => WordStatus::Mastered,
+                    _ => panic!("Dictionary has wrong entry in status"),
+                },
             })
-            .unwrap()
-            .next();
+        });
 
-        entry.map(|entry| entry.unwrap())
+        entry.ok()
     }
 
     pub fn get_by_search(&self, search: &str) -> Vec<Translation> {
@@ -152,5 +147,37 @@ impl Database {
         .unwrap()
         .map(|dictionary| dictionary.expect("Failed to read translation from database"))
         .collect()
+    }
+
+    pub fn count(&self) -> usize {
+        let stmt = self.conn.prepare(
+            "SELECT COUNT(*)
+                FROM dictionary",
+        );
+
+        if stmt.is_err() {
+            return 0;
+        }
+
+        let mut stmt = stmt.unwrap();
+
+        stmt.query_row([], |row| Ok(row.get(0)?)).unwrap()
+    }
+
+    pub fn count_by_status(&self, status: WordStatus) -> usize {
+        let stmt = self.conn.prepare(
+            "SELECT COUNT(status)
+                FROM dictionary 
+                WHERE status = ?1",
+        );
+
+        if stmt.is_err() {
+            return 0;
+        }
+
+        let mut stmt = stmt.unwrap();
+
+        stmt.query_row([status as usize], |row| Ok(row.get(0)?))
+            .unwrap()
     }
 }

@@ -18,7 +18,6 @@ pub struct MyEguiApp {
     paragraph: Vec<RichText>,
 
     database: Database,
-    // dictionary: LinkedHashMap<String, (String, WordStatus)>,
     dictionary_open: bool,
     search_text: String,
 
@@ -134,15 +133,9 @@ impl eframe::App for MyEguiApp {
                         })
                     });
 
-                // ! Move this to SQL
-                let (mut learning, mut mastered) = (0, 0);
-                for t in self.database.get_all().iter() {
-                    match t.status {
-                        WordStatus::Learning => learning += 1,
-                        WordStatus::Mastered => mastered += 1,
-                        _ => (),
-                    }
-                }
+                // ? Maybe make this better by iterating only once
+                let learning = self.database.count_by_status(WordStatus::Learning);
+                let mastered = self.database.count_by_status(WordStatus::Mastered);
 
                 ui.label(format!("learning: {learning}"));
                 ui.label(format!("mastered: {mastered}"));
