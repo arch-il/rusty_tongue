@@ -32,6 +32,7 @@ impl Database {
 
         let database = Self { conn };
 
+        // ! move this to SQL
         if database.get_all().is_empty() {
             database.insert(&Translation {
                 from: String::new(),
@@ -125,5 +126,34 @@ impl Database {
             Some(entry) => Some(entry.unwrap()),
             None => None,
         }
+    }
+
+    pub fn get_by_search(&self, search: &str) -> Vec<Translation> {
+        let stmt = self.conn.prepare(
+            "SELECT * FROM dictionary 
+                WHERE word LIKE '%' || ?1 || '%' OR translated LIKE '%' || ?1 || '%'",
+        );
+
+        if stmt.is_err() {
+            return vec![];
+        }
+
+        let mut stmt = stmt.unwrap();
+
+        stmt.query_map([search], |row| {
+            Ok(Translation {
+                from: row.get(1)?,
+                to: row.get(2)?,
+                status: match row.get(3)? {
+                    0 => WordStatus::NotAWord,
+                    1 => WordStatus::Learning,
+                    2 => WordStatus::Mastered,
+                    _ => panic!("Dictionary has wrong entry in status"),
+                },
+            })
+        })
+        .unwrap()
+        .map(|dictionary| dictionary.expect("Failed to read translation from database"))
+        .collect()
     }
 }

@@ -104,14 +104,7 @@ impl eframe::App for MyEguiApp {
                             }
                         });
 
-                        for t in self.database.get_all().iter().rev() {
-                            // ! move this to SQL
-                            if !t.from.contains(&self.search_text)
-                                && !t.to.contains(&self.search_text)
-                            {
-                                continue;
-                            }
-
+                        for t in self.database.get_by_search(&self.search_text).iter().rev() {
                             ui.horizontal(|ui| {
                                 let temp = match t.status {
                                     WordStatus::Learning => Some(ui.label(
