@@ -119,7 +119,7 @@ impl MyEguiApp {
             self.toggle_translate_pop_up(ctx);
         }
 
-        self.translate_pop_up.text_from = self.lines[self.index].clone();
+        self.translate_pop_up.text_from = self.lines[self.location].clone();
         self.translate_pop_up.text_to = text_utils::translate_text(
             &self.translate_pop_up.text_from,
             self.translate_pop_up.language_from,

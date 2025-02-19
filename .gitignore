@@ -1,3 +1,4 @@
 target/
 book.txt
 database.db3
+savestate.ron

@@ -25,12 +25,12 @@ impl MyEguiApp {
         for key in new_keys.iter() {
             match key {
                 Key::ArrowDown => {
-                    self.index += 1;
+                    self.location += 1;
                     self.get_history_entry();
                 }
                 Key::ArrowUp => {
-                    if self.index != 0 {
-                        self.index -= 1;
+                    if self.location != 0 {
+                        self.location -= 1;
                     }
                     self.get_history_entry();
                 }
@@ -56,7 +56,7 @@ impl MyEguiApp {
                     self.translate_paragraph(ctx);
                 }
                 Key::L => {
-                    ctx.memory_mut(|mem| mem.request_focus(self.location_id));
+                    ctx.memory_mut(|mem| mem.request_focus(self.location_box_id));
                 }
 
                 Key::Escape => {

@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 eframe = "0.31.0"
 ringbuf = "0.4.7"
+ron = "0.8.1"
 rusqlite = { version = "0.33.0", features = ["bundled"] }
 rust-translate = "0.1.3"
+serde = { version = "1.0.217", features = ["derive"] }
 tokio = "1.43.0"

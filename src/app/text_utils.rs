@@ -11,11 +11,11 @@ use super::{
 
 impl MyEguiApp {
     pub fn get_history_entry(&mut self) {
-        if self.index >= self.lines.len() {
-            self.index = self.lines.len() - 1;
+        if self.location >= self.lines.len() {
+            self.location = self.lines.len() - 1;
         }
 
-        self.paragraph = text_to_tokens(&self.lines[self.index], &self.database);
+        self.paragraph = text_to_tokens(&self.lines[self.location], &self.database);
     }
 
     pub fn record_translate_history(&mut self, from: &str, to: &str) {

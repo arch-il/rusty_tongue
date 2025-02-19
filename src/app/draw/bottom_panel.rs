@@ -6,7 +6,7 @@ impl MyEguiApp {
     pub fn draw_bottom_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("Progress").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                let pos = self.index + 1;
+                let pos = self.location + 1;
                 let max = self.lines.len();
 
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
@@ -14,15 +14,15 @@ impl MyEguiApp {
 
                     ui.label("loc:");
 
-                    let mut search_text = self.index.to_string();
+                    let mut search_text = self.location.to_string();
                     egui::TextEdit::singleline(&mut search_text)
                         .clip_text(false)
                         .desired_width(0.0)
-                        .id(self.location_id)
+                        .id(self.location_box_id)
                         .show(ui);
-                    let temp = search_text.parse().unwrap_or(self.index);
-                    if temp != self.index {
-                        self.index = temp;
+                    let temp = search_text.parse().unwrap_or(self.location);
+                    if temp != self.location {
+                        self.location = temp;
                         self.get_history_entry();
                     }
 

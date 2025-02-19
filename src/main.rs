@@ -2,6 +2,7 @@ mod app;
 use app::MyEguiApp;
 
 mod database;
+mod savestate;
 
 use eframe::egui::{Vec2, ViewportBuilder};
 
