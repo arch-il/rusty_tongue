@@ -9,11 +9,12 @@ use super::MyEguiApp;
 
 impl MyEguiApp {
     pub fn input(&mut self, ctx: &egui::Context) {
+        let keys_down = ctx.input(|input_state| input_state.keys_down.clone());
+
         if ctx.memory(|mem| mem.focused()).is_some() {
+            self.prev_keys_down = keys_down;
             return;
         }
-
-        let keys_down = ctx.input(|input_state| input_state.keys_down.clone());
 
         let new_keys = self
             .prev_keys_down
@@ -50,6 +51,9 @@ impl MyEguiApp {
                 }
                 Key::T => {
                     self.toggle_translate_pop_up(ctx);
+                }
+                Key::P => {
+                    self.translate_paragraph(ctx);
                 }
                 Key::L => {
                     ctx.memory_mut(|mem| mem.request_focus(self.location_id));
