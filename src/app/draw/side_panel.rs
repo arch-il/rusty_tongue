@@ -42,7 +42,7 @@ impl MyEguiApp {
         let mastered = self.database.count_by_status(WordStatus::Mastered);
 
         ui.label(format!("Learning: {learning}"));
-        ui.label(format!("Lastered: {mastered}"));
+        ui.label(format!("Mastered: {mastered}"));
     }
 
     fn translate_history_buttons(&mut self, ui: &mut Ui) {
