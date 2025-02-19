@@ -35,6 +35,7 @@ impl MyEguiApp {
                 self.draw_translate_history(ui);
             });
     }
+
     fn word_stats(&mut self, ui: &mut Ui) {
         // ? Maybe make this better by iterating only once
         let learning = self.database.count_by_status(WordStatus::Learning);
@@ -47,12 +48,39 @@ impl MyEguiApp {
     fn translate_history_buttons(&mut self, ui: &mut Ui) {
         if !self.translate_history.is_empty() {
             ui.horizontal(|ui| {
-                if ui.button("Mark Mastered").clicked() {
-                    self.update_last_words_status(WordStatus::Mastered);
-                }
+                let translation = self
+                    .database
+                    .get_by_from(&self.translate_history.last().unwrap().0);
 
-                if ui.button("Not A Word").clicked() {
+                let status = if let Some(translation) = translation {
+                    translation.status
+                } else {
+                    return;
+                };
+
+                ui.label("status:");
+
+                if ui
+                    .selectable_label(status == WordStatus::NotAWord, "❌")
+                    .clicked()
+                {
                     self.update_last_words_status(WordStatus::NotAWord);
+                } else if ui
+                    .selectable_label(
+                        status == WordStatus::Learning,
+                        RichText::from("📖").color(Color32::YELLOW),
+                    )
+                    .clicked()
+                {
+                    self.update_last_words_status(WordStatus::Learning);
+                } else if ui
+                    .selectable_label(
+                        status == WordStatus::Mastered,
+                        RichText::from("✅").color(Color32::GREEN),
+                    )
+                    .clicked()
+                {
+                    self.update_last_words_status(WordStatus::Mastered);
                 }
             });
         }
@@ -70,7 +98,7 @@ impl MyEguiApp {
 
             let mut iter = self.translate_history.iter_mut().rev();
             if let Some((from, to)) = iter.next() {
-                ui.label(RichText::from(format!("{from} - {to}")).color(Color32::YELLOW));
+                ui.label(RichText::from(format!("{from} - {to}")).strong());
             }
 
             for (from, to) in iter {
