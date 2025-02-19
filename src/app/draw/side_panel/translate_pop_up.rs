@@ -34,6 +34,22 @@ impl MyEguiApp {
         {
             self.toggle_translate_pop_up(ui.ctx());
         }
+
+        let keyboard_shortcut = ui.ctx().memory(|mem| mem.focused()).is_none()
+            && ui.input(|i| i.key_pressed(egui::Key::P));
+
+        if ui.button("Translate Paragraph").clicked() || keyboard_shortcut {
+            if !self.translate_pop_up.open {
+                self.toggle_translate_pop_up(ui.ctx());
+            }
+
+            self.translate_pop_up.text_from = self.lines[self.index].clone();
+            self.translate_pop_up.text_to = text_utils::translate_text(
+                &self.translate_pop_up.text_from,
+                self.translate_pop_up.language_from,
+                self.translate_pop_up.language_to,
+            );
+        }
     }
 
     pub fn toggle_translate_pop_up(&mut self, ctx: &egui::Context) {

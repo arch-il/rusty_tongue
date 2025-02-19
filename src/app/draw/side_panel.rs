@@ -18,13 +18,13 @@ impl MyEguiApp {
             .exact_width(SIDE_PANEL_WIDTH)
             .show(ctx, |ui| {
                 ui.heading("Dictionary");
-
                 self.open_dictionary_button(ui);
                 self.dictionary_pop_up(ctx);
 
                 self.word_stats(ui);
 
                 ui.separator();
+                ui.heading("Translate");
                 self.open_translate_button(ui);
                 self.translate_pop_up(ctx);
 
