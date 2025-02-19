@@ -41,8 +41,8 @@ impl MyEguiApp {
         let learning = self.database.count_by_status(WordStatus::Learning);
         let mastered = self.database.count_by_status(WordStatus::Mastered);
 
-        ui.label(format!("learning: {learning}"));
-        ui.label(format!("mastered: {mastered}"));
+        ui.label(format!("Learning: {learning}"));
+        ui.label(format!("Lastered: {mastered}"));
     }
 
     fn translate_history_buttons(&mut self, ui: &mut Ui) {
@@ -58,7 +58,7 @@ impl MyEguiApp {
                     return;
                 };
 
-                ui.label("status:");
+                ui.label("Status:");
 
                 if ui
                     .selectable_label(status == WordStatus::NotAWord, "❌")
