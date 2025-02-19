@@ -1,4 +1,4 @@
-use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2};
+use eframe::egui::{self, Color32, Modifiers, RichText, Sense, Ui, Vec2};
 use ringbuf::traits::{Consumer, Observer};
 
 use crate::{
@@ -253,6 +253,7 @@ impl MyEguiApp {
 
                     if ui.button("🔀").clicked() {
                         std::mem::swap(&mut pop_up.language_from, &mut pop_up.language_to);
+                        std::mem::swap(&mut pop_up.text_from, &mut pop_up.text_to);
                     }
 
                     egui::ComboBox::from_id_salt(2)
@@ -274,11 +275,13 @@ impl MyEguiApp {
                     .id(pop_up.id)
                     .show(ui);
 
+                let keyboard_shortcut =
+                    ui.input_mut(|i| i.consume_key(Modifiers::CTRL, egui::Key::Enter));
                 let translate_button = egui::Button::new("Translate");
-                if ui
+                let button_press = ui
                     .add_sized([ui.available_width(), 0.0], translate_button)
-                    .clicked()
-                {
+                    .clicked();
+                if keyboard_shortcut || button_press {
                     pop_up.text_to = text_utils::translate_text(
                         &pop_up.text_from,
                         pop_up.language_from,
@@ -286,10 +289,8 @@ impl MyEguiApp {
                     );
                 }
 
-                // let mut translated_text = text_utils::translate_text(&self.search_text);
-                egui::TextEdit::multiline(&mut pop_up.text_to)
-                    .interactive(false)
-                    .show(ui);
+                let mut temp = pop_up.text_to.clone();
+                ui.text_edit_multiline(&mut temp);
             });
     }
 }
