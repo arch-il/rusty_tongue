@@ -87,6 +87,10 @@ impl MyEguiApp {
                     {
                         self.search_filter.2 = !self.search_filter.2;
                     }
+
+                    ui.add_space(10.0);
+                    ui.label("Hide:");
+                    ui.checkbox(&mut self.hide_translated, "");
                 });
 
                 egui::ScrollArea::vertical().show(ui, |ui| {
@@ -128,7 +132,11 @@ impl MyEguiApp {
                                 }
                             };
 
-                            ui.label(format!("{} - {}", t.from, t.to));
+                            ui.label(&t.from);
+                            if !self.hide_translated {
+                                ui.label("-");
+                                ui.label(&t.to);
+                            }
                         });
                     }
                 })

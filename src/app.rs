@@ -19,6 +19,7 @@ pub struct MyEguiApp {
     search_text: String,
     search_id: egui::Id,
     search_filter: (bool, bool, bool),
+    hide_translated: bool,
 
     translate_history: StaticRb<(String, String), 100>,
 
@@ -60,6 +61,7 @@ impl MyEguiApp {
             search_text: String::new(),
             search_id: egui::Id::new("dictionary search id"),
             search_filter: (false, true, true),
+            hide_translated: false,
 
             translate_history: StaticRb::<(String, String), 100>::default(),
 
