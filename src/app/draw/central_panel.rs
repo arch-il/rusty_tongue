@@ -5,7 +5,7 @@ use crate::{
     database::{Translation, WordStatus},
 };
 
-use super::MyEguiApp;
+use super::{side_panel::language::Language, MyEguiApp};
 
 impl MyEguiApp {
     pub fn draw_central_panel(&mut self, ctx: &egui::Context) {
@@ -32,7 +32,15 @@ impl MyEguiApp {
 
                         if label_button.clicked() {
                             let from = text_utils::token_to_word(token.text());
-                            let to = self.translate_text(&from);
+                            let to = if let Some(t) = self.database.get_by_from(&from) {
+                                t.to
+                            } else {
+                                text_utils::translate_text(
+                                    &from,
+                                    Language::German,
+                                    Language::English,
+                                )
+                            };
 
                             self.record_translate_history(&from, &to);
 

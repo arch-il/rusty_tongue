@@ -1,7 +1,15 @@
 use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2};
 use ringbuf::traits::{Consumer, Observer};
 
-use crate::{app::MyEguiApp, database::WordStatus};
+use crate::{
+    app::{text_utils, MyEguiApp},
+    database::WordStatus,
+};
+
+pub mod language;
+use language::Language;
+mod translate_pop_up;
+pub use translate_pop_up::TranslatePopUp;
 
 impl MyEguiApp {
     pub fn draw_side_panel(&mut self, ctx: &egui::Context) {
@@ -15,6 +23,10 @@ impl MyEguiApp {
                 self.open_dictionary_button(ui);
                 self.dictionary_pop_up(ctx);
                 self.word_stats(ui);
+
+                ui.separator();
+                self.open_translate_button(ui);
+                self.translate_pop_up(ctx);
 
                 ui.separator();
                 ui.heading("History");
@@ -193,5 +205,91 @@ impl MyEguiApp {
         self.database.update_status_by_from(from, status);
 
         self.get_history_entry();
+    }
+
+    fn open_translate_button(&mut self, ui: &mut Ui) {
+        if ui
+            .button(if self.translate_pop_up.open {
+                "Close Translate"
+            } else {
+                "Open Translate"
+            })
+            .clicked()
+        {
+            self.toggle_translate_pop_up(ui.ctx());
+        }
+    }
+
+    pub fn toggle_translate_pop_up(&mut self, ctx: &egui::Context) {
+        self.translate_pop_up.open = !self.translate_pop_up.open;
+        if self.translate_pop_up.open {
+            ctx.memory_mut(|mem| mem.request_focus(self.translate_pop_up.id));
+        }
+    }
+
+    fn translate_pop_up(&mut self, ctx: &egui::Context) {
+        let pop_up = &mut self.translate_pop_up;
+
+        egui::Window::new("Translate")
+            .open(&mut pop_up.open)
+            .resizable(true)
+            .max_width(200.0)
+            .max_height(200.0)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    egui::ComboBox::from_id_salt(1)
+                        .selected_text(language::language_to_string(pop_up.language_from))
+                        .show_ui(ui, |ui| {
+                            let languages =
+                                [Language::English, Language::German, Language::Italian];
+                            for language in languages {
+                                ui.selectable_value(
+                                    &mut pop_up.language_from,
+                                    language,
+                                    language::language_to_string(language),
+                                );
+                            }
+                        });
+
+                    if ui.button("🔀").clicked() {
+                        std::mem::swap(&mut pop_up.language_from, &mut pop_up.language_to);
+                    }
+
+                    egui::ComboBox::from_id_salt(2)
+                        .selected_text(language::language_to_string(pop_up.language_to))
+                        .show_ui(ui, |ui| {
+                            let languages =
+                                [Language::English, Language::German, Language::Italian];
+                            for language in languages {
+                                ui.selectable_value(
+                                    &mut pop_up.language_to,
+                                    language,
+                                    language::language_to_string(language),
+                                );
+                            }
+                        });
+                });
+
+                egui::TextEdit::multiline(&mut pop_up.text_from)
+                    .id(pop_up.id)
+                    .show(ui);
+
+                let translate_button = egui::Button::new("Translate");
+                if ui
+                    .add_sized([ui.available_width(), 0.0], translate_button)
+                    .clicked()
+                {
+                    pop_up.text_to = text_utils::translate_text(
+                        &pop_up.text_from,
+                        pop_up.language_from,
+                        pop_up.language_to,
+                    );
+                }
+
+                // let mut translated_text = text_utils::translate_text(&self.search_text);
+                egui::TextEdit::multiline(&mut pop_up.text_to)
+                    .interactive(false)
+                    .show(ui);
+            });
     }
 }

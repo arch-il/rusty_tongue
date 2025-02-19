@@ -4,7 +4,7 @@ use super::MyEguiApp;
 
 mod bottom_panel;
 mod central_panel;
-mod side_panel;
+pub mod side_panel;
 
 impl MyEguiApp {
     pub fn draw(&mut self, ctx: &egui::Context) {

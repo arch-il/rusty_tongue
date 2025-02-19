@@ -3,6 +3,7 @@ use ringbuf::StaticRb;
 use std::{collections::HashSet, fs::File, io::Read};
 
 use crate::database::Database;
+use draw::side_panel::TranslatePopUp;
 
 mod draw;
 mod input;
@@ -20,6 +21,8 @@ pub struct MyEguiApp {
     search_id: egui::Id,
     search_filter: (bool, bool, bool),
     hide_translated: bool,
+
+    translate_pop_up: TranslatePopUp,
 
     translate_history: StaticRb<(String, String), 100>,
 
@@ -62,6 +65,8 @@ impl MyEguiApp {
             search_id: egui::Id::new("dictionary search id"),
             search_filter: (false, true, true),
             hide_translated: false,
+
+            translate_pop_up: TranslatePopUp::new(),
 
             translate_history: StaticRb::<(String, String), 100>::default(),
 
