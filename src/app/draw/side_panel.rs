@@ -21,6 +21,7 @@ impl MyEguiApp {
 
                 self.open_dictionary_button(ui);
                 self.dictionary_pop_up(ctx);
+
                 self.word_stats(ui);
 
                 ui.separator();

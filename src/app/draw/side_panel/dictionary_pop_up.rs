@@ -25,11 +25,7 @@ impl DictionaryPopUp {
 impl MyEguiApp {
     pub fn open_dictionary_button(&mut self, ui: &mut Ui) {
         if ui
-            .button(if self.dictionary_pop_up.open {
-                "Close Dictionary"
-            } else {
-                "Open Dictionary"
-            })
+            .selectable_label(self.dictionary_pop_up.open, "Open Dictionary")
             .clicked()
         {
             self.toggle_dictionary_pop_up(ui.ctx());

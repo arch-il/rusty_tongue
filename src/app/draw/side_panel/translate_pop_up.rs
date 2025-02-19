@@ -29,11 +29,7 @@ impl TranslatePopUp {
 impl MyEguiApp {
     pub fn open_translate_button(&mut self, ui: &mut Ui) {
         if ui
-            .button(if self.translate_pop_up.open {
-                "Close Translate"
-            } else {
-                "Open Translate"
-            })
+            .selectable_label(self.translate_pop_up.open, "Open Translate")
             .clicked()
         {
             self.toggle_translate_pop_up(ui.ctx());
