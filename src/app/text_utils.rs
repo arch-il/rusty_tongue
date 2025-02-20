@@ -56,7 +56,7 @@ fn text_to_tokens(text: &str, database: &Database) -> Vec<RichText> {
         .map(|token| {
             let from = token_to_word(token);
 
-            if let Some(t) = database.get_by_from(&from) {
+            if let Some(t) = database.get_by_word(&from) {
                 return match &t.status {
                     WordStatus::Learning => RichText::from(token).color(Color32::YELLOW),
                     WordStatus::Mastered | WordStatus::NotAWord => RichText::from(token),

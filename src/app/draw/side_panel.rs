@@ -50,7 +50,7 @@ impl MyEguiApp {
             ui.horizontal(|ui| {
                 let translation = self
                     .database
-                    .get_by_from(&self.translate_history.last().unwrap().0);
+                    .get_by_word(&self.translate_history.last().unwrap().0);
 
                 let status = if let Some(translation) = translation {
                     translation.status

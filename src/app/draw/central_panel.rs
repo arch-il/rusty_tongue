@@ -31,23 +31,18 @@ impl MyEguiApp {
                             .ui(ui);
 
                         if label_button.clicked() {
-                            let from = text_utils::token_to_word(token.text());
-                            let to = if let Some(t) = self.database.get_by_from(&from) {
-                                t.to
-                            } else {
-                                text_utils::translate_text(
-                                    &from,
-                                    Language::German,
-                                    Language::English,
-                                )
-                            };
+                            let word = text_utils::token_to_word(token.text());
+                            let to = text_utils::translate_text(
+                                &word,
+                                Language::German,
+                                Language::English,
+                            ); // ! change to dict cc
 
-                            self.record_translate_history(&from, &to);
+                            self.record_translate_history(&word, &to);
 
-                            if self.database.get_by_from(&from).is_none() {
+                            if self.database.get_by_word(&word).is_none() {
                                 self.database.insert(&Translation {
-                                    from,
-                                    to,
+                                    word,
                                     status: WordStatus::Learning,
                                 });
 

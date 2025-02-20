@@ -23,7 +23,6 @@ impl Database {
             "CREATE TABLE IF NOT EXISTS dictionary(
             id          INTEGER PRIMARY KEY,
             word        TEXT NOT NULL,
-            translated  TEXT NOT NULL,
             status	    INTEGER NOT NULL
             )",
             (),
@@ -34,8 +33,7 @@ impl Database {
 
         if database.count() == 0 {
             database.insert(&Translation {
-                from: String::new(),
-                to: String::new(),
+                word: String::new(),
                 status: WordStatus::NotAWord,
             });
         }
@@ -46,12 +44,8 @@ impl Database {
     pub fn insert(&self, translation: &Translation) {
         self.conn
             .execute(
-                "INSERT INTO dictionary (word, translated, status) VALUES (?1, ?2, ?3)",
-                (
-                    &translation.from,
-                    &translation.to,
-                    translation.status as usize,
-                ),
+                "INSERT INTO dictionary (word, status) VALUES (?1, ?2)",
+                (&translation.word, translation.status as usize),
             )
             .expect("Failed to insert dictionary");
     }
@@ -77,9 +71,8 @@ impl Database {
 
         stmt.query_map([], |row| {
             Ok(Translation {
-                from: row.get(1)?,
-                to: row.get(2)?,
-                status: match row.get(3)? {
+                word: row.get(1)?,
+                status: match row.get(2)? {
                     0 => WordStatus::NotAWord,
                     1 => WordStatus::Learning,
                     2 => WordStatus::Mastered,
@@ -92,7 +85,7 @@ impl Database {
         .collect()
     }
 
-    pub fn get_by_from(&self, from: &str) -> Option<Translation> {
+    pub fn get_by_word(&self, from: &str) -> Option<Translation> {
         let stmt = self
             .conn
             .prepare("SELECT * FROM dictionary WHERE word = ?1 LIMIT 1");
@@ -105,9 +98,8 @@ impl Database {
 
         let entry = stmt.query_row([from], |row| {
             Ok(Translation {
-                from: row.get(1)?,
-                to: row.get(2)?,
-                status: match row.get(3)? {
+                word: row.get(1)?,
+                status: match row.get(2)? {
                     0 => WordStatus::NotAWord,
                     1 => WordStatus::Learning,
                     2 => WordStatus::Mastered,
@@ -122,7 +114,7 @@ impl Database {
     pub fn get_by_search(&self, search: &str) -> Vec<Translation> {
         let stmt = self.conn.prepare(
             "SELECT * FROM dictionary 
-                WHERE word LIKE '%' || ?1 || '%' OR translated LIKE '%' || ?1 || '%'",
+                WHERE word LIKE '%' || ?1 || '%'",
         );
 
         if stmt.is_err() {
@@ -133,9 +125,8 @@ impl Database {
 
         stmt.query_map([search], |row| {
             Ok(Translation {
-                from: row.get(1)?,
-                to: row.get(2)?,
-                status: match row.get(3)? {
+                word: row.get(1)?,
+                status: match row.get(2)? {
                     0 => WordStatus::NotAWord,
                     1 => WordStatus::Learning,
                     2 => WordStatus::Mastered,

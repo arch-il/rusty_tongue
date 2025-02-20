@@ -130,11 +130,12 @@ impl MyEguiApp {
                                 }
                             };
 
-                            ui.label(&t.from);
-                            if !self.dictionary_pop_up.hide_translated {
-                                ui.label("-");
-                                ui.label(&t.to);
-                            }
+                            ui.label(&t.word);
+                            // ! enable later
+                            // if !self.dictionary_pop_up.hide_translated {
+                            //     ui.label("-");
+                            //     ui.label(&t.to);
+                            // }
                         });
                     }
                 })
