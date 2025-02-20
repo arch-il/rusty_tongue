@@ -51,7 +51,7 @@ impl MyEguiApp {
             ui.horizontal(|ui| {
                 let translation = self
                     .user_database
-                    .get_by_word(&self.translate_history.last().unwrap().0);
+                    .get_by_word(&self.translate_history.last().unwrap());
 
                 let status = if let Some(translation) = translation {
                     translation.status
@@ -98,18 +98,18 @@ impl MyEguiApp {
             );
 
             let mut iter = self.translate_history.iter_mut().rev();
-            if let Some((from, to)) = iter.next() {
-                ui.label(RichText::from(format!("{from} - {to}")).strong());
+            if let Some(word) = iter.next() {
+                ui.label(RichText::from(word).strong());
             }
 
-            for (from, to) in iter {
-                ui.label(format!("{from} - {to}"));
+            for word in iter {
+                ui.label(word.clone());
             }
         });
     }
 
     pub fn update_last_words_status(&mut self, status: WordStatus) {
-        let from = &self.translate_history.last().unwrap().0;
+        let from = &self.translate_history.last().unwrap();
 
         self.user_database.update_status_by_from(from, status);
 

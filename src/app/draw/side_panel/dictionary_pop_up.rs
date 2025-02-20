@@ -13,7 +13,7 @@ pub struct DictionaryPopUp {
     pub filter: (bool, bool, bool),
     pub curr_word: Option<String>,
     pub curr_entries: Option<Vec<DictEntry>>,
-    // pub hide_translated: bool,
+    pub entry_id: egui::Id,
 }
 
 impl DictionaryPopUp {
@@ -25,7 +25,7 @@ impl DictionaryPopUp {
             filter: (false, true, true),
             curr_word: None,
             curr_entries: None,
-            // hide_translated: false,
+            entry_id: egui::Id::new("entry id"),
         }
     }
 }
@@ -48,6 +48,9 @@ impl MyEguiApp {
     }
 
     pub fn dictionary_pop_up(&mut self, ctx: &egui::Context) {
+        // ! this is so stupid solution. TRY TO FIX THIS LATER
+        let mut word = None;
+
         egui::Window::new("Dictionary")
             .open(&mut self.dictionary_pop_up.open)
             .resizable(true)
@@ -93,10 +96,6 @@ impl MyEguiApp {
                     {
                         self.dictionary_pop_up.filter.2 = !self.dictionary_pop_up.filter.2;
                     }
-
-                    // ui.add_space(10.0);
-                    // ui.label("Hide:");
-                    // ui.checkbox(&mut self.dictionary_pop_up.hide_translated, "");
                 });
 
                 egui::ScrollArea::vertical().show(ui, |ui| {
@@ -142,27 +141,24 @@ impl MyEguiApp {
                             let label_button =
                                 egui::Label::new(&t.word).sense(Sense::click()).ui(ui);
                             if label_button.clicked() {
-                                // ! try to remove clones
-                                if self.dictionary_pop_up.curr_word != Some(t.word.clone()) {
-                                    self.dictionary_pop_up.curr_word = Some(t.word.clone());
-                                    self.dictionary_pop_up.curr_entries = None;
-                                }
+                                word = Some(t.word.clone());
                             }
-                            // ui.label(&t.word);
-                            // ui.label("-");
-                            // let translated =
-                            //     text_utils::find_in_dict(&self.dict_database, &t.word).unwrap();
-                            // ui.label(translated.right_word.plain_word());
-
-                            // ! enable later
-                            // if !self.dictionary_pop_up.hide_translated {
-                            //     ui.label("-");
-                            //     ui.label(&t.to);
-                            // }
                         });
                     }
                 })
             });
+
+        if let Some(word) = word {
+            self.set_entry_pop_up_word(&word);
+        }
+    }
+
+    pub fn set_entry_pop_up_word(&mut self, word: &str) {
+        // ! try to remove clones
+        if self.dictionary_pop_up.curr_word != Some(String::from(word)) {
+            self.dictionary_pop_up.curr_word = Some(String::from(word));
+            self.dictionary_pop_up.curr_entries = None;
+        }
     }
 
     pub fn word_entry_pop_up(&mut self, ctx: &egui::Context) {
@@ -175,6 +171,7 @@ impl MyEguiApp {
         };
 
         egui::Window::new(format!("Word Entry: {word}"))
+            .id(self.dictionary_pop_up.entry_id)
             .open(&mut open)
             .resizable(true)
             .max_width(350.0)
@@ -186,7 +183,6 @@ impl MyEguiApp {
                     entries
                 } else {
                     let temp = text_utils::find_in_dict(&self.dict_database, word).unwrap();
-                    // .rev()
                     self.dictionary_pop_up.curr_entries = Some(temp);
                     &self.dictionary_pop_up.curr_entries.clone().unwrap() // ! annyoing clone here
                 };

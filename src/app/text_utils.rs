@@ -19,12 +19,12 @@ impl MyEguiApp {
         self.paragraph = text_to_tokens(&self.lines[self.location], &self.user_database);
     }
 
-    pub fn record_translate_history(&mut self, from: &str, to: &str) {
+    pub fn record_translate_history(&mut self, word: &str) {
         let (mut prod, mut cons) = self.translate_history.split_ref();
         if cons.is_full() {
             cons.try_pop();
         }
-        let _ = prod.try_push((from.to_string(), to.to_string()));
+        let _ = prod.try_push(word.to_string());
     }
 }
 

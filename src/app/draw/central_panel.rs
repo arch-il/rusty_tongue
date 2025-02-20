@@ -5,7 +5,7 @@ use crate::{
     database::{Translation, WordStatus},
 };
 
-use super::{side_panel::language::Language, MyEguiApp};
+use super::MyEguiApp;
 
 impl MyEguiApp {
     pub fn draw_central_panel(&mut self, ctx: &egui::Context) {
@@ -20,7 +20,7 @@ impl MyEguiApp {
                     },
                     Sense::empty(),
                 );
-                // ? Why do I need horizontal with labels?
+
                 ui.horizontal_wrapped(|ui| {
                     ui.spacing_mut().item_spacing = Vec2::new(3.5, 3.0);
 
@@ -32,13 +32,10 @@ impl MyEguiApp {
 
                         if label_button.clicked() {
                             let word = text_utils::token_to_word(token.text());
-                            let to = text_utils::translate_text(
-                                &word,
-                                Language::German,
-                                Language::English,
-                            ); // ! change to dict cc
 
-                            self.record_translate_history(&word, &to);
+                            self.record_translate_history(&word);
+
+                            self.set_entry_pop_up_word(&word);
 
                             if self.user_database.get_by_word(&word).is_none() {
                                 self.user_database.insert(&Translation {

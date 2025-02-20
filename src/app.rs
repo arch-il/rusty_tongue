@@ -25,7 +25,7 @@ pub struct MyEguiApp {
     dictionary_pop_up: DictionaryPopUp,
     translate_pop_up: TranslatePopUp,
 
-    translate_history: StaticRb<(String, String), 100>,
+    translate_history: StaticRb<String, 100>,
 
     prev_keys_down: HashSet<Key>,
 }
@@ -58,7 +58,7 @@ impl MyEguiApp {
             Err(_) => Savestate::default(),
         };
 
-        let mut translate_history = StaticRb::<(String, String), 100>::default();
+        let mut translate_history = StaticRb::<String, 100>::default();
         translate_history.push_iter(savestate.translate_history.into_iter().take(100));
 
         let mut temp = Self {
