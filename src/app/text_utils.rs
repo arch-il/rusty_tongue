@@ -60,6 +60,7 @@ fn text_to_tokens(text: &str, database: &Database) -> Vec<RichText> {
                 return match &t.status {
                     WordStatus::Learning => RichText::from(token).color(Color32::YELLOW),
                     WordStatus::Mastered | WordStatus::NotAWord => RichText::from(token),
+                    _ => panic!("Invalid status in database"),
                 };
             }
             RichText::from(token).color(Color32::RED)

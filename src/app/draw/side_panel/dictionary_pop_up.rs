@@ -128,6 +128,7 @@ impl MyEguiApp {
                                 WordStatus::Mastered => {
                                     ui.label(RichText::from("✅").color(Color32::GREEN))
                                 }
+                                _ => panic!("Invalid status in database"),
                             };
 
                             ui.label(&t.word);
