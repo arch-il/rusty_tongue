@@ -30,18 +30,15 @@ impl MyEguiApp {
 
 pub fn find_in_dict(dict_database: &Option<Dict>, word: &str) -> Option<Vec<DictEntry>> {
     if let Some(dict_database) = &dict_database {
-        if let Ok(query) = dict_database.query(word).execute() {
-            Some(
-                query
-                    .entries()
-                    .iter()
-                    .filter(|x| x.left_word.plain_word().to_lowercase() == word)
-                    .cloned()
-                    .collect(),
-            )
-        } else {
-            None
-        }
+        let mut temp = dict_database
+            .get_entries()
+            .iter()
+            .filter(|entry| entry.left_word.plain_word().to_lowercase().contains(word))
+            .cloned()
+            .collect::<Vec<_>>();
+        temp.sort_by_key(|entry| entry.left_word.plain_word().len());
+        temp.truncate(100);
+        Some(temp)
     } else {
         None
     }

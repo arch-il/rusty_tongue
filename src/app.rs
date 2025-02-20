@@ -87,6 +87,9 @@ impl eframe::App for MyEguiApp {
         self.input(ctx);
 
         self.draw(ctx);
+
+        // * for testing frame time
+        // println!("{}", ctx.input(|i| i.unstable_dt));
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {

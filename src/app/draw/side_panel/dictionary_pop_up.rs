@@ -174,16 +174,14 @@ impl MyEguiApp {
             return;
         };
 
-        egui::Window::new("Word Entry")
+        egui::Window::new(format!("Word Entry: {word}"))
             .open(&mut open)
             .resizable(true)
-            .max_width(250.0)
-            .max_height(200.0)
+            .max_width(350.0)
+            .max_height(250.0)
             .vscroll(true)
             .hscroll(true)
             .show(ctx, |ui| {
-                ui.heading(word);
-
                 let entries = if let Some(entries) = &self.dictionary_pop_up.curr_entries {
                     entries
                 } else {
@@ -195,15 +193,21 @@ impl MyEguiApp {
 
                 for entry in entries {
                     ui.horizontal(|ui| {
-                        ui.label(format!("{:?}", entry.word_classes));
-                        ui.label(format!("{:?}", entry.left_word.acronyms()));
-                        ui.label(format!("{:?}", entry.left_word.comments()));
-                        ui.label(format!("{:?}", entry.left_word.genders()));
-                        ui.label(format!("{:?}", entry.left_word.word_with_optional_parts()));
+                        if !entry.word_classes.is_empty() {
+                            ui.label(format!("{:?}", entry.word_classes));
+                        }
+                        if !entry.left_word.genders().is_empty() {
+                            ui.label(format!("{:?}", entry.left_word.genders()));
+                        }
 
-                        ui.label(entry.left_word.plain_word());
+                        ui.label(RichText::from(entry.left_word.plain_word()).strong());
                         ui.label("-");
-                        ui.label(entry.right_word.plain_word());
+                        ui.label(RichText::from(entry.right_word.plain_word()).strong());
+
+                        // ? maybe enable in the future
+                        // ui.label(format!("{:?}", entry.left_word.word_with_optional_parts()));
+                        // ui.label(format!("{:?}", entry.left_word.acronyms()));
+                        // ui.label(format!("{:?}", entry.left_word.comments()));
                     });
                 }
             });
