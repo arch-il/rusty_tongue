@@ -1,13 +1,19 @@
-use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2};
+use dictcc::DictEntry;
+use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2, Widget};
 
-use crate::{app::MyEguiApp, database::WordStatus};
+use crate::{
+    app::{text_utils, MyEguiApp},
+    database::WordStatus,
+};
 
 pub struct DictionaryPopUp {
     pub open: bool,
     pub id: egui::Id,
     pub search_text: String,
     pub filter: (bool, bool, bool),
-    pub hide_translated: bool,
+    pub curr_word: Option<String>,
+    pub curr_entries: Option<Vec<DictEntry>>,
+    // pub hide_translated: bool,
 }
 
 impl DictionaryPopUp {
@@ -17,7 +23,9 @@ impl DictionaryPopUp {
             search_text: String::new(),
             id: egui::Id::new("dictionary search id"),
             filter: (false, true, true),
-            hide_translated: false,
+            curr_word: None,
+            curr_entries: None,
+            // hide_translated: false,
         }
     }
 }
@@ -86,9 +94,9 @@ impl MyEguiApp {
                         self.dictionary_pop_up.filter.2 = !self.dictionary_pop_up.filter.2;
                     }
 
-                    ui.add_space(10.0);
-                    ui.label("Hide:");
-                    ui.checkbox(&mut self.dictionary_pop_up.hide_translated, "");
+                    // ui.add_space(10.0);
+                    // ui.label("Hide:");
+                    // ui.checkbox(&mut self.dictionary_pop_up.hide_translated, "");
                 });
 
                 egui::ScrollArea::vertical().show(ui, |ui| {
@@ -113,7 +121,7 @@ impl MyEguiApp {
                     }
 
                     for t in self
-                        .database
+                        .user_database
                         .get_by_search(&self.dictionary_pop_up.search_text)
                         .iter()
                         .filter(|t| status_filter.contains(&t.status))
@@ -131,7 +139,21 @@ impl MyEguiApp {
                                 _ => panic!("Invalid status in database"),
                             };
 
-                            ui.label(&t.word);
+                            let label_button =
+                                egui::Label::new(&t.word).sense(Sense::click()).ui(ui);
+                            if label_button.clicked() {
+                                // ! try to remove clones
+                                if self.dictionary_pop_up.curr_word != Some(t.word.clone()) {
+                                    self.dictionary_pop_up.curr_word = Some(t.word.clone());
+                                    self.dictionary_pop_up.curr_entries = None;
+                                }
+                            }
+                            // ui.label(&t.word);
+                            // ui.label("-");
+                            // let translated =
+                            //     text_utils::find_in_dict(&self.dict_database, &t.word).unwrap();
+                            // ui.label(translated.right_word.plain_word());
+
                             // ! enable later
                             // if !self.dictionary_pop_up.hide_translated {
                             //     ui.label("-");
@@ -141,5 +163,54 @@ impl MyEguiApp {
                     }
                 })
             });
+    }
+
+    pub fn word_entry_pop_up(&mut self, ctx: &egui::Context) {
+        let mut open;
+        let word = if let Some(word) = &self.dictionary_pop_up.curr_word {
+            open = true;
+            word
+        } else {
+            return;
+        };
+
+        egui::Window::new("Word Entry")
+            .open(&mut open)
+            .resizable(true)
+            .max_width(250.0)
+            .max_height(200.0)
+            .vscroll(true)
+            .hscroll(true)
+            .show(ctx, |ui| {
+                ui.heading(word);
+
+                let entries = if let Some(entries) = &self.dictionary_pop_up.curr_entries {
+                    entries
+                } else {
+                    let temp = text_utils::find_in_dict(&self.dict_database, word).unwrap();
+                    // .rev()
+                    self.dictionary_pop_up.curr_entries = Some(temp);
+                    &self.dictionary_pop_up.curr_entries.clone().unwrap() // ! annyoing clone here
+                };
+
+                for entry in entries {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{:?}", entry.word_classes));
+                        ui.label(format!("{:?}", entry.left_word.acronyms()));
+                        ui.label(format!("{:?}", entry.left_word.comments()));
+                        ui.label(format!("{:?}", entry.left_word.genders()));
+                        ui.label(format!("{:?}", entry.left_word.word_with_optional_parts()));
+
+                        ui.label(entry.left_word.plain_word());
+                        ui.label("-");
+                        ui.label(entry.right_word.plain_word());
+                    });
+                }
+            });
+
+        if !open {
+            self.dictionary_pop_up.curr_word = None;
+            self.dictionary_pop_up.curr_entries = None;
+        }
     }
 }

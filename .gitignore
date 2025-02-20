@@ -1,4 +1,5 @@
 target/
 book.txt
 database.db3
+dict_database.txt
 savestate.ron

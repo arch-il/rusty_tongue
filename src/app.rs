@@ -1,3 +1,4 @@
+use dictcc::Dict;
 use eframe::egui::{self, Key, RichText};
 use ringbuf::{
     traits::{Consumer, Producer},
@@ -18,7 +19,8 @@ pub struct MyEguiApp {
     paragraph: Vec<RichText>,
     location_box_id: egui::Id,
 
-    database: Database,
+    user_database: Database,
+    dict_database: Option<Dict>,
 
     dictionary_pop_up: DictionaryPopUp,
     translate_pop_up: TranslatePopUp,
@@ -65,7 +67,8 @@ impl MyEguiApp {
             paragraph: vec![],
             location_box_id: egui::Id::new("location id"),
 
-            database: Database::new(),
+            user_database: Database::new(),
+            dict_database: Dict::create("dict_database.txt").ok(),
 
             dictionary_pop_up: DictionaryPopUp::new(),
             translate_pop_up: TranslatePopUp::new(),

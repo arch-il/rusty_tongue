@@ -20,6 +20,7 @@ impl MyEguiApp {
                 ui.heading("Dictionary");
                 self.open_dictionary_button(ui);
                 self.dictionary_pop_up(ctx);
+                self.word_entry_pop_up(ctx);
 
                 self.word_stats(ui);
 
@@ -38,8 +39,8 @@ impl MyEguiApp {
 
     fn word_stats(&mut self, ui: &mut Ui) {
         // ? Maybe make this better by iterating only once
-        let learning = self.database.count_by_status(WordStatus::Learning);
-        let mastered = self.database.count_by_status(WordStatus::Mastered);
+        let learning = self.user_database.count_by_status(WordStatus::Learning);
+        let mastered = self.user_database.count_by_status(WordStatus::Mastered);
 
         ui.label(format!("Learning: {learning}"));
         ui.label(format!("Mastered: {mastered}"));
@@ -49,7 +50,7 @@ impl MyEguiApp {
         if !self.translate_history.is_empty() {
             ui.horizontal(|ui| {
                 let translation = self
-                    .database
+                    .user_database
                     .get_by_word(&self.translate_history.last().unwrap().0);
 
                 let status = if let Some(translation) = translation {
@@ -110,7 +111,7 @@ impl MyEguiApp {
     pub fn update_last_words_status(&mut self, status: WordStatus) {
         let from = &self.translate_history.last().unwrap().0;
 
-        self.database.update_status_by_from(from, status);
+        self.user_database.update_status_by_from(from, status);
 
         self.get_history_entry();
     }

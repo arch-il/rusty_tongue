@@ -40,8 +40,8 @@ impl MyEguiApp {
 
                             self.record_translate_history(&word, &to);
 
-                            if self.database.get_by_word(&word).is_none() {
-                                self.database.insert(&Translation {
+                            if self.user_database.get_by_word(&word).is_none() {
+                                self.user_database.insert(&Translation {
                                     word,
                                     status: WordStatus::Learning,
                                 });
