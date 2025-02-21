@@ -1,9 +1,8 @@
-use dictcc::DictEntry;
 use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2, Widget};
 
 use crate::{
-    app::{text_utils, MyEguiApp},
-    database::WordStatus,
+    app::MyEguiApp,
+    database::{DictItem, WordStatus},
 };
 
 pub struct DictionaryPopUp {
@@ -12,7 +11,7 @@ pub struct DictionaryPopUp {
     pub search_text: String,
     pub filter: (bool, bool, bool),
     pub curr_word: Option<String>,
-    pub curr_entries: Option<Vec<DictEntry>>,
+    pub curr_entries: Option<Vec<DictItem>>,
     pub entry_id: egui::Id,
 }
 
@@ -120,8 +119,8 @@ impl MyEguiApp {
                     }
 
                     for t in self
-                        .user_database
-                        .get_by_search(&self.dictionary_pop_up.search_text)
+                        .database
+                        .search_user_entries(&self.dictionary_pop_up.search_text)
                         .iter()
                         .filter(|t| status_filter.contains(&t.status))
                         .rev()
@@ -182,23 +181,23 @@ impl MyEguiApp {
                 let entries = if let Some(entries) = &self.dictionary_pop_up.curr_entries {
                     entries
                 } else {
-                    let temp = text_utils::find_in_dict(&self.dict_database, word).unwrap();
+                    let temp = self.database.search_dict_entries(word);
                     self.dictionary_pop_up.curr_entries = Some(temp);
                     &self.dictionary_pop_up.curr_entries.clone().unwrap() // ! annyoing clone here
                 };
 
                 for entry in entries {
                     ui.horizontal(|ui| {
-                        if !entry.word_classes.is_empty() {
-                            ui.label(format!("{:?}", entry.word_classes));
+                        if !entry.classes.is_empty() {
+                            ui.label(format!("{:?}", entry.classes));
                         }
-                        if !entry.left_word.genders().is_empty() {
-                            ui.label(format!("{:?}", entry.left_word.genders()));
+                        if !entry.genders.is_empty() {
+                            ui.label(format!("{:?}", entry.genders));
                         }
 
-                        ui.label(RichText::from(entry.left_word.plain_word()).strong());
+                        ui.label(RichText::from(&entry.left_word).strong());
                         ui.label("-");
-                        ui.label(RichText::from(entry.right_word.plain_word()).strong());
+                        ui.label(RichText::from(&entry.right_word).strong());
 
                         // ? maybe enable in the future
                         // ui.label(format!("{:?}", entry.left_word.word_with_optional_parts()));

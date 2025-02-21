@@ -1,4 +1,3 @@
-use dictcc::{Dict, DictEntry};
 use eframe::egui::{Color32, RichText};
 use ringbuf::traits::{Consumer, Observer, Producer, SplitRef};
 use rust_translate::translate;
@@ -16,7 +15,7 @@ impl MyEguiApp {
             self.location = self.lines.len() - 1;
         }
 
-        self.paragraph = text_to_tokens(&self.lines[self.location], &self.user_database);
+        self.paragraph = text_to_tokens(&self.lines[self.location], &self.database);
     }
 
     pub fn record_translate_history(&mut self, word: &str) {
@@ -25,22 +24,6 @@ impl MyEguiApp {
             cons.try_pop();
         }
         let _ = prod.try_push(word.to_string());
-    }
-}
-
-pub fn find_in_dict(dict_database: &Option<Dict>, word: &str) -> Option<Vec<DictEntry>> {
-    if let Some(dict_database) = &dict_database {
-        let mut temp = dict_database
-            .get_entries()
-            .iter()
-            .filter(|entry| entry.left_word.plain_word().to_lowercase().contains(word))
-            .cloned()
-            .collect::<Vec<_>>();
-        temp.sort_by_key(|entry| entry.left_word.plain_word().len());
-        temp.truncate(100);
-        Some(temp)
-    } else {
-        None
     }
 }
 

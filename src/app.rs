@@ -1,4 +1,3 @@
-use dictcc::Dict;
 use eframe::egui::{self, Key, RichText};
 use ringbuf::{
     traits::{Consumer, Producer},
@@ -19,8 +18,7 @@ pub struct MyEguiApp {
     paragraph: Vec<RichText>,
     location_box_id: egui::Id,
 
-    user_database: Database,
-    dict_database: Option<Dict>,
+    database: Database,
 
     dictionary_pop_up: DictionaryPopUp,
     translate_pop_up: TranslatePopUp,
@@ -67,8 +65,7 @@ impl MyEguiApp {
             paragraph: vec![],
             location_box_id: egui::Id::new("location id"),
 
-            user_database: Database::new(),
-            dict_database: Dict::create("dict_database.txt").ok(),
+            database: Database::new(),
 
             dictionary_pop_up: DictionaryPopUp::new(),
             translate_pop_up: TranslatePopUp::new(),
@@ -89,7 +86,7 @@ impl eframe::App for MyEguiApp {
         self.draw(ctx);
 
         // * for testing frame time
-        // println!("{}", ctx.input(|i| i.unstable_dt));
+        println!("{}", ctx.input(|i| i.unstable_dt));
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
