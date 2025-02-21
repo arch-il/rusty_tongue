@@ -1,7 +1,7 @@
 use eframe::egui::{self, Key, RichText};
 use ringbuf::{
-    traits::{Consumer, Producer},
     StaticRb,
+    traits::{Consumer, Producer},
 };
 use std::{collections::HashSet, fs};
 
@@ -86,7 +86,7 @@ impl eframe::App for MyEguiApp {
         self.draw(ctx);
 
         // * for testing frame time
-        println!("{}", ctx.input(|i| i.unstable_dt));
+        // println!("{}", ctx.input(|i| i.unstable_dt));
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
