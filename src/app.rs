@@ -6,7 +6,7 @@ use ringbuf::{
 use std::{collections::HashSet, fs};
 
 use crate::{database::Database, savestate::Savestate};
-use draw::side_panel::{DictionaryPopUp, TranslatePopUp};
+use draw::side_panel::DictionaryPopUp;
 
 mod draw;
 mod input;
@@ -21,7 +21,6 @@ pub struct MyEguiApp {
     database: Database,
 
     dictionary_pop_up: DictionaryPopUp,
-    translate_pop_up: TranslatePopUp,
 
     translate_history: StaticRb<String, 100>,
 
@@ -68,7 +67,6 @@ impl MyEguiApp {
             database: Database::new(),
 
             dictionary_pop_up: DictionaryPopUp::new(),
-            translate_pop_up: TranslatePopUp::new(),
 
             translate_history,
             prev_keys_down: HashSet::new(),

@@ -49,12 +49,6 @@ impl MyEguiApp {
                 Key::D => {
                     self.toggle_dictionary_pop_up(ctx);
                 }
-                Key::T => {
-                    self.toggle_translate_pop_up(ctx);
-                }
-                Key::P => {
-                    self.translate_paragraph(ctx);
-                }
                 Key::L => {
                     ctx.memory_mut(|mem| mem.request_focus(self.location_box_id));
                 }

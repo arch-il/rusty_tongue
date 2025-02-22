@@ -3,10 +3,6 @@ use ringbuf::traits::{Consumer, Observer};
 
 use crate::{app::MyEguiApp, database::WordStatus};
 
-pub mod language;
-use language::Language;
-mod translate_pop_up;
-pub use translate_pop_up::TranslatePopUp;
 mod dictionary_pop_up;
 pub use dictionary_pop_up::DictionaryPopUp;
 
@@ -27,9 +23,6 @@ impl MyEguiApp {
 
                 ui.separator();
                 ui.heading(RichText::from("Translate").strong());
-
-                self.open_translate_button(ui);
-                self.translate_pop_up(ctx);
 
                 ui.separator();
                 ui.heading(RichText::from("History").strong());

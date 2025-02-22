@@ -1,13 +1,9 @@
 use eframe::egui::{Color32, RichText};
 use ringbuf::traits::{Consumer, Observer, Producer, SplitRef};
-use rust_translate::translate;
 
 use crate::database::{Database, WordStatus};
 
-use super::{
-    MyEguiApp,
-    draw::side_panel::language::{self, Language},
-};
+use super::MyEguiApp;
 
 impl MyEguiApp {
     pub fn get_history_entry(&mut self) {
@@ -25,22 +21,6 @@ impl MyEguiApp {
         }
         let _ = prod.try_push(word.to_string());
     }
-}
-
-pub fn translate_text(text: &str, from: Language, to: Language) -> String {
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async {
-            translate(
-                text,
-                &language::language_to_code(from),
-                &language::language_to_code(to),
-            )
-            .await
-            .expect("Failed translating text")
-        })
 }
 
 pub fn token_to_word(token: &str) -> String {
