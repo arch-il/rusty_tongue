@@ -188,7 +188,8 @@ impl Database {
         let stmt = self.conn.prepare(
             "SELECT * FROM dict_database
 			            WHERE LOWER(left_word) LIKE '%' || ?1 || '%'
-						ORDER BY LENGTH(left_word)",
+						ORDER BY LENGTH(left_word)
+                        LIMIT 100",
         );
 
         if stmt.is_err() {
@@ -215,7 +216,6 @@ impl Database {
         })
         .unwrap()
         .map(|dictionary| dictionary.expect("Failed to read translation from database"))
-        .take(100)
         .collect()
     }
 }
