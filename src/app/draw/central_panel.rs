@@ -1,4 +1,4 @@
-use eframe::egui::{self, Sense, Vec2, Widget};
+use eframe::egui::{self, RichText, Sense, Vec2, Widget};
 
 use crate::{
     app::text_utils,
@@ -10,7 +10,7 @@ use super::MyEguiApp;
 impl MyEguiApp {
     pub fn draw_central_panel(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Reading Area");
+            ui.heading(RichText::from("Reading Area").strong());
 
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.allocate_at_least(

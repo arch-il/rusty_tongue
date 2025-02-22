@@ -50,14 +50,14 @@ impl MyEguiApp {
         // ! this is so stupid solution. TRY TO FIX THIS LATER
         let mut word = None;
 
-        egui::Window::new("Dictionary")
+        egui::Window::new(RichText::from("Dictionary").strong())
             .open(&mut self.dictionary_pop_up.open)
             .resizable(true)
             .max_width(200.0)
             .max_height(200.0)
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
-                    ui.label("Search:");
+                    ui.label(RichText::from("Search:").strong());
 
                     egui::TextEdit::singleline(&mut self.dictionary_pop_up.search_text)
                         .id(self.dictionary_pop_up.id)
@@ -69,10 +69,13 @@ impl MyEguiApp {
                 });
 
                 ui.horizontal(|ui| {
-                    ui.label("Filter:");
+                    ui.label(RichText::from("Filter:").strong());
 
                     if ui
-                        .selectable_label(self.dictionary_pop_up.filter.0, "❌")
+                        .selectable_label(
+                            self.dictionary_pop_up.filter.0,
+                            RichText::from("❌").color(Color32::LIGHT_RED),
+                        )
                         .clicked()
                     {
                         self.dictionary_pop_up.filter.0 = !self.dictionary_pop_up.filter.0;
@@ -80,7 +83,7 @@ impl MyEguiApp {
                     if ui
                         .selectable_label(
                             self.dictionary_pop_up.filter.1,
-                            RichText::from("📖").color(Color32::YELLOW),
+                            RichText::from("📖").color(Color32::LIGHT_YELLOW),
                         )
                         .clicked()
                     {
@@ -89,7 +92,7 @@ impl MyEguiApp {
                     if ui
                         .selectable_label(
                             self.dictionary_pop_up.filter.2,
-                            RichText::from("✅").color(Color32::GREEN),
+                            RichText::from("✅").color(Color32::LIGHT_GREEN),
                         )
                         .clicked()
                     {
@@ -127,14 +130,16 @@ impl MyEguiApp {
                     {
                         ui.horizontal(|ui| {
                             match t.status {
-                                WordStatus::NotAWord => ui.label("❌"),
+                                WordStatus::NotAWord => {
+                                    ui.label(RichText::from("❌").color(Color32::LIGHT_RED))
+                                }
+
                                 WordStatus::Learning => {
-                                    ui.label(RichText::from("📖").color(Color32::YELLOW))
+                                    ui.label(RichText::from("📖").color(Color32::LIGHT_YELLOW))
                                 }
                                 WordStatus::Mastered => {
-                                    ui.label(RichText::from("✅").color(Color32::GREEN))
+                                    ui.label(RichText::from("✅").color(Color32::LIGHT_GREEN))
                                 }
-                                _ => panic!("Invalid status in database"),
                             };
 
                             let label_button =
@@ -169,7 +174,7 @@ impl MyEguiApp {
             return;
         };
 
-        egui::Window::new(format!("Word Entry: {word}"))
+        egui::Window::new(RichText::from(format!("Word Entry: {word}")).strong())
             .id(self.dictionary_pop_up.entry_id)
             .open(&mut open)
             .resizable(true)

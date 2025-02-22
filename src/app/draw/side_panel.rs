@@ -17,7 +17,8 @@ impl MyEguiApp {
         egui::SidePanel::right("Info Panel")
             .exact_width(SIDE_PANEL_WIDTH)
             .show(ctx, |ui| {
-                ui.heading("Dictionary");
+                ui.heading(RichText::from("Dictionary").strong());
+
                 self.open_dictionary_button(ui);
                 self.dictionary_pop_up(ctx);
                 self.word_entry_pop_up(ctx);
@@ -25,12 +26,13 @@ impl MyEguiApp {
                 self.word_stats(ui);
 
                 ui.separator();
-                ui.heading("Translate");
+                ui.heading(RichText::from("Translate").strong());
+
                 self.open_translate_button(ui);
                 self.translate_pop_up(ctx);
 
                 ui.separator();
-                ui.heading("History");
+                ui.heading(RichText::from("History").strong());
 
                 self.translate_history_buttons(ui);
                 self.draw_translate_history(ui);
@@ -42,8 +44,15 @@ impl MyEguiApp {
         let learning = self.database.count_by_status(WordStatus::Learning);
         let mastered = self.database.count_by_status(WordStatus::Mastered);
 
-        ui.label(format!("Learning: {learning}"));
-        ui.label(format!("Mastered: {mastered}"));
+        ui.horizontal(|ui| {
+            // ui.label(format!("Learning: {learning}"));
+            ui.label(RichText::from("Learning:").strong());
+            ui.label(learning.to_string());
+        });
+        ui.horizontal(|ui| {
+            ui.label(RichText::from("Mastered:").strong());
+            ui.label(mastered.to_string());
+        });
     }
 
     fn translate_history_buttons(&mut self, ui: &mut Ui) {
@@ -59,17 +68,20 @@ impl MyEguiApp {
                     return;
                 };
 
-                ui.label("Status:");
+                ui.label(RichText::from("Status:").strong());
 
                 if ui
-                    .selectable_label(status == WordStatus::NotAWord, "❌")
+                    .selectable_label(
+                        status == WordStatus::NotAWord,
+                        RichText::from("❌").color(Color32::LIGHT_RED),
+                    )
                     .clicked()
                 {
                     self.update_last_words_status(WordStatus::NotAWord);
                 } else if ui
                     .selectable_label(
                         status == WordStatus::Learning,
-                        RichText::from("📖").color(Color32::YELLOW),
+                        RichText::from("📖").color(Color32::LIGHT_YELLOW),
                     )
                     .clicked()
                 {
@@ -77,7 +89,7 @@ impl MyEguiApp {
                 } else if ui
                     .selectable_label(
                         status == WordStatus::Mastered,
-                        RichText::from("✅").color(Color32::GREEN),
+                        RichText::from("✅").color(Color32::LIGHT_GREEN),
                     )
                     .clicked()
                 {
@@ -111,7 +123,7 @@ impl MyEguiApp {
     pub fn update_last_words_status(&mut self, status: WordStatus) {
         let from = &self.translate_history.last().unwrap();
 
-        self.database.update_status_by_from(from, status);
+        self.database.update_status_by_word(from, status);
 
         self.get_history_entry();
     }

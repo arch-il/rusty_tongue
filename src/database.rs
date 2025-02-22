@@ -64,11 +64,11 @@ impl Database {
             .expect("Failed to insert user_dictionary");
     }
 
-    pub fn update_status_by_from(&self, from: &str, status: WordStatus) {
+    pub fn update_status_by_word(&self, word: &str, status: WordStatus) {
         self.conn
             .execute(
                 "UPDATE user_dictionary SET status = ?2 WHERE word = ?1",
-                (from, status as usize),
+                (word, status as usize),
             )
             .expect("Failed to update user_dictionary");
     }

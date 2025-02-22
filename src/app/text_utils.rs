@@ -5,8 +5,8 @@ use rust_translate::translate;
 use crate::database::{Database, WordStatus};
 
 use super::{
-    draw::side_panel::language::{self, Language},
     MyEguiApp,
+    draw::side_panel::language::{self, Language},
 };
 
 impl MyEguiApp {
@@ -58,12 +58,13 @@ fn text_to_tokens(text: &str, database: &Database) -> Vec<RichText> {
 
             if let Some(t) = database.get_by_word(&from) {
                 return match &t.status {
-                    WordStatus::Learning => RichText::from(token).color(Color32::YELLOW),
+                    WordStatus::Learning => {
+                        RichText::from(token).color(Color32::LIGHT_YELLOW).strong()
+                    }
                     WordStatus::Mastered | WordStatus::NotAWord => RichText::from(token),
-                    _ => panic!("Invalid status in database"),
                 };
             }
-            RichText::from(token).color(Color32::RED)
+            RichText::from(token).color(Color32::LIGHT_RED)
         })
         .collect()
 }
