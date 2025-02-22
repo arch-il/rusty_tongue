@@ -193,12 +193,20 @@ impl MyEguiApp {
 
                 for entry in entries {
                     ui.horizontal(|ui| {
-                        if !entry.classes.is_empty() {
-                            ui.label(format!("{:?}", entry.classes));
-                        }
-                        if !entry.genders.is_empty() {
-                            ui.label(format!("{:?}", entry.genders));
-                        }
+                        ui.label(
+                            format!("{:?}", entry.classes)
+                                .chars()
+                                .into_iter()
+                                .filter(|c| c != &'\"')
+                                .collect::<String>(),
+                        );
+                        ui.label(
+                            format!("{:?}", entry.genders)
+                                .chars()
+                                .into_iter()
+                                .filter(|c| c != &'\"')
+                                .collect::<String>(),
+                        );
 
                         ui.label(RichText::from(&entry.left_word).strong());
                         ui.label("-");
