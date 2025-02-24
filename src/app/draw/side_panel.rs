@@ -118,6 +118,6 @@ impl MyEguiApp {
 
         self.database.update_status_by_word(from, status);
 
-        self.get_history_entry();
+        self.refresh_page();
     }
 }

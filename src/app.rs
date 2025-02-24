@@ -14,8 +14,9 @@ mod text_utils;
 
 pub struct MyEguiApp {
     lines: Vec<String>,
-    location: usize,
+    page_location: usize,
     paragraph: Vec<RichText>,
+    word_location: usize,
     location_box_id: egui::Id,
 
     database: Database,
@@ -60,8 +61,9 @@ impl MyEguiApp {
 
         let mut temp = Self {
             lines,
-            location: savestate.location,
+            page_location: savestate.page_location,
             paragraph: vec![],
+            word_location: savestate.word_location,
             location_box_id: egui::Id::new("location id"),
 
             database: Database::new(),
@@ -71,7 +73,7 @@ impl MyEguiApp {
             translate_history,
             prev_keys_down: HashSet::new(),
         };
-        temp.get_history_entry();
+        temp.refresh_page();
 
         temp
     }
@@ -92,7 +94,8 @@ impl eframe::App for MyEguiApp {
             "savestate.ron",
             ron::ser::to_string_pretty(
                 &Savestate {
-                    location: self.location,
+                    page_location: self.page_location,
+                    word_location: self.word_location,
                     translate_history: self.translate_history.iter().cloned().collect(),
                 },
                 ron::ser::PrettyConfig::default(),

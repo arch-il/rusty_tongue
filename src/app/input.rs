@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use eframe::egui::{self, Key};
 use ringbuf::traits::Observer;
 
-use crate::database::WordStatus;
+use crate::{
+    app::text_utils,
+    database::{Translation, WordStatus},
+};
 
 use super::MyEguiApp;
 
@@ -25,14 +28,57 @@ impl MyEguiApp {
         for key in new_keys.iter() {
             match key {
                 Key::ArrowDown => {
-                    self.location += 1;
-                    self.get_history_entry();
+                    self.page_location += 1;
+                    self.refresh_page();
+
+                    self.select_word(0);
                 }
                 Key::ArrowUp => {
-                    if self.location != 0 {
-                        self.location -= 1;
+                    if self.page_location != 0 {
+                        self.page_location -= 1;
                     }
-                    self.get_history_entry();
+                    self.refresh_page();
+
+                    self.select_word(0);
+                }
+
+                Key::ArrowRight => {
+                    let mut location = 0;
+
+                    for (i, token) in self
+                        .paragraph
+                        .iter()
+                        .enumerate()
+                        .skip(self.word_location + 1)
+                    {
+                        // ! fix this. i am getting token information for second time
+                        let word = text_utils::token_to_word(token.text());
+                        let entry = self.database.get_by_word(&word);
+
+                        let hit = if let Some(entry) = entry {
+                            entry.status == WordStatus::Learning
+                        } else {
+                            self.database.insert(&Translation {
+                                word: word.clone(),
+                                status: WordStatus::Learning,
+                            });
+                            true
+                        };
+
+                        if hit {
+                            location = i;
+                            break;
+                        }
+                    }
+
+                    if location != self.word_location {
+                        self.select_word(location);
+                    }
+                }
+                Key::ArrowLeft => {
+                    if self.word_location != 0 {
+                        self.select_word(self.word_location - 1);
+                    }
                 }
 
                 Key::M => {
