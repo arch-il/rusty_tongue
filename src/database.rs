@@ -61,6 +61,10 @@ impl Database {
     }
 
     pub fn insert(&self, translation: &Translation) {
+        if self.get_by_word(&translation.word).is_some() {
+            return;
+        }
+
         self.conn
             .execute(
                 "INSERT INTO user_dictionary (word, status) VALUES (?1, ?2)",
