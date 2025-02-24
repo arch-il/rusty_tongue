@@ -178,8 +178,8 @@ impl MyEguiApp {
             .id(self.dictionary_pop_up.entry_id)
             .open(&mut open)
             .resizable(true)
-            .max_width(350.0)
-            .max_height(250.0)
+            .max_width(600.0)
+            .max_height(300.0)
             .vscroll(true)
             .hscroll(true)
             .show(ctx, |ui| {
@@ -199,6 +199,7 @@ impl MyEguiApp {
                                 .filter(|c| c != &'\"')
                                 .collect::<String>(),
                         );
+
                         ui.label(
                             format!("{:?}", entry.left_genders)
                                 .chars()
@@ -207,8 +208,43 @@ impl MyEguiApp {
                         );
 
                         ui.label(RichText::from(&entry.left_word).strong());
+
+                        if !entry.left_acronyms[0].is_empty() {
+                            ui.label(
+                                format!("{:?}", entry.left_acronyms)
+                                    .chars()
+                                    .filter(|c| c != &'\"')
+                                    .collect::<String>(),
+                            );
+                        }
+                        if !entry.left_comments[0].is_empty() {
+                            ui.label(
+                                format!("{:?}", entry.left_comments)
+                                    .chars()
+                                    .filter(|c| c != &'\"')
+                                    .collect::<String>(),
+                            );
+                        }
+
                         ui.label("-");
                         ui.label(RichText::from(&entry.right_word).strong());
+
+                        if !entry.right_acronyms[0].is_empty() {
+                            ui.label(
+                                format!("{:?}", entry.right_acronyms)
+                                    .chars()
+                                    .filter(|c| c != &'\"')
+                                    .collect::<String>(),
+                            );
+                        }
+                        if !entry.right_comments[0].is_empty() {
+                            ui.label(
+                                format!("{:?}", entry.right_comments)
+                                    .chars()
+                                    .filter(|c| c != &'\"')
+                                    .collect::<String>(),
+                            );
+                        }
 
                         // ? maybe enable in the future
                         // ui.label(format!("{:?}", entry.left_word.word_with_optional_parts()));
