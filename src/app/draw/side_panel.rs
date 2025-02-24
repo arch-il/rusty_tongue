@@ -22,9 +22,6 @@ impl MyEguiApp {
                 self.word_stats(ui);
 
                 ui.separator();
-                ui.heading(RichText::from("Translate").strong());
-
-                ui.separator();
                 ui.heading(RichText::from("History").strong());
 
                 self.translate_history_buttons(ui);

@@ -196,14 +196,12 @@ impl MyEguiApp {
                         ui.label(
                             format!("{:?}", entry.classes)
                                 .chars()
-                                .into_iter()
                                 .filter(|c| c != &'\"')
                                 .collect::<String>(),
                         );
                         ui.label(
                             format!("{:?}", entry.left_genders)
                                 .chars()
-                                .into_iter()
                                 .filter(|c| c != &'\"')
                                 .collect::<String>(),
                         );
