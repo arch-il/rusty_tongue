@@ -201,7 +201,7 @@ impl MyEguiApp {
                                 .collect::<String>(),
                         );
                         ui.label(
-                            format!("{:?}", entry.genders)
+                            format!("{:?}", entry.left_genders)
                                 .chars()
                                 .into_iter()
                                 .filter(|c| c != &'\"')

@@ -32,16 +32,21 @@ impl Database {
         .unwrap();
 
         conn.execute(
-            "CREATE TABLE IF NOT EXISTS dict_dictionary(
-            id          INTEGER PRIMARY KEY,
-            left_word	TEXT NOT NULL,
-            right_word	TEXT NOT NULL,
-            classes		TEXT NOT NULL,
-            genders		TEXT NOT NULL
+            "CREATE TABLE IF NOT EXISTS dict_database(
+            id              INTEGER PRIMARY KEY,
+            classes		    TEXT NOT NULL,
+            left_word	    TEXT NOT NULL,
+            left_genders    TEXT NOT NULL,
+            left_acronyms   TEXT NOT NULL,
+            left_comments   TEXT NOT NULL,
+            right_word	    TEXT NOT NULL,
+            right_genders   TEXT NOT NULL,
+            right_acronyms  TEXT NOT NULL,
+            right_comments  TEXT NOT NULL            
             )",
             (),
         )
-        .unwrap();
+        .expect("Failed to create table");
 
         let database = Self { conn };
 
@@ -188,7 +193,6 @@ impl Database {
         let stmt = self.conn.prepare(
             "SELECT * FROM dict_database
 			            WHERE LOWER(left_word) LIKE '%' || ?1 || '%'
-						ORDER BY LENGTH(left_word)
                         LIMIT 100",
         );
 
@@ -200,15 +204,40 @@ impl Database {
 
         stmt.query_map([search], |row| {
             Ok(DictItem {
-                left_word: row.get(1)?,
-                right_word: row.get(2)?,
                 classes: row
+                    .get::<usize, String>(1)?
+                    .split(",")
+                    .map(|x| x.to_string())
+                    .collect(),
+                left_word: row.get(2)?,
+                left_genders: row
                     .get::<usize, String>(3)?
                     .split(",")
                     .map(|x| x.to_string())
                     .collect(),
-                genders: row
+                left_acronyms: row
                     .get::<usize, String>(4)?
+                    .split(",")
+                    .map(|x| x.to_string())
+                    .collect(),
+                left_comments: row
+                    .get::<usize, String>(5)?
+                    .split(",")
+                    .map(|x| x.to_string())
+                    .collect(),
+                right_word: row.get(6)?,
+                right_genders: row
+                    .get::<usize, String>(7)?
+                    .split(",")
+                    .map(|x| x.to_string())
+                    .collect(),
+                right_acronyms: row
+                    .get::<usize, String>(8)?
+                    .split(",")
+                    .map(|x| x.to_string())
+                    .collect(),
+                right_comments: row
+                    .get::<usize, String>(9)?
                     .split(",")
                     .map(|x| x.to_string())
                     .collect(),
