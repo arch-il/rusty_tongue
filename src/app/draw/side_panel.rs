@@ -1,4 +1,4 @@
-use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2};
+use eframe::egui::{self, Color32, RichText, Sense, Ui, Vec2, Widget};
 use ringbuf::traits::{Consumer, Observer};
 
 use crate::{app::MyEguiApp, database::WordStatus};
@@ -35,7 +35,6 @@ impl MyEguiApp {
         let mastered = self.database.count_by_status(WordStatus::Mastered);
 
         ui.horizontal(|ui| {
-            // ui.label(format!("Learning: {learning}"));
             ui.label(RichText::from("Learning:").strong());
             ui.label(learning.to_string());
         });
@@ -99,13 +98,32 @@ impl MyEguiApp {
                 Sense::empty(),
             );
 
+            // ? try to remove duplicate code here
             let mut iter = self.translate_history.iter_mut().rev();
             if let Some(word) = iter.next() {
-                ui.label(RichText::from(word).strong());
+                if egui::Label::new(RichText::from(word.clone()).strong())
+                    .sense(egui::Sense::click())
+                    .ui(ui)
+                    .clicked()
+                {
+                    if Some(word.clone()) != self.dictionary_pop_up.curr_word {
+                        self.dictionary_pop_up.curr_word = Some(word.clone());
+                        self.dictionary_pop_up.curr_entries = None;
+                    }
+                }
             }
 
             for word in iter {
-                ui.label(word.clone());
+                if egui::Label::new(word.clone())
+                    .sense(egui::Sense::click())
+                    .ui(ui)
+                    .clicked()
+                {
+                    if Some(word.clone()) != self.dictionary_pop_up.curr_word {
+                        self.dictionary_pop_up.curr_word = Some(word.clone());
+                        self.dictionary_pop_up.curr_entries = None;
+                    }
+                }
             }
         });
     }

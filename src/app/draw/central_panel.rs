@@ -21,11 +21,11 @@ impl MyEguiApp {
 
                     // ! Try to remove clone here
                     for (i, token) in self.paragraph.clone().iter().enumerate() {
-                        let label_button = egui::Label::new(token.clone())
+                        if egui::Label::new(token.clone())
                             .sense(egui::Sense::click())
-                            .ui(ui);
-
-                        if label_button.clicked() {
+                            .ui(ui)
+                            .clicked()
+                        {
                             self.select_word(i);
                         }
                     }
