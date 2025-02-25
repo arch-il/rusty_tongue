@@ -81,21 +81,26 @@ impl MyEguiApp {
                     }
                 }
 
-                Key::M => {
-                    if !self.translate_history.is_empty() {
-                        self.update_last_words_status(WordStatus::Mastered);
-                    }
-                }
                 Key::N => {
                     if !self.translate_history.is_empty() {
                         self.update_last_words_status(WordStatus::NotAWord);
+                    }
+                }
+                Key::L => {
+                    if !self.translate_history.is_empty() {
+                        self.update_last_words_status(WordStatus::Learning);
+                    }
+                }
+                Key::M => {
+                    if !self.translate_history.is_empty() {
+                        self.update_last_words_status(WordStatus::Mastered);
                     }
                 }
 
                 Key::D => {
                     self.toggle_dictionary_pop_up(ctx);
                 }
-                Key::L => {
+                Key::G => {
                     ctx.memory_mut(|mem| mem.request_focus(self.location_box_id));
                 }
 
