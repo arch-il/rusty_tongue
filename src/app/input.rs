@@ -104,6 +104,10 @@ impl MyEguiApp {
                     ctx.memory_mut(|mem| mem.request_focus(self.location_box_id));
                 }
 
+                Key::C => {
+                    ctx.copy_text(self.paragraph[self.word_location].text().to_string());
+                }
+
                 Key::Escape => {
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }
