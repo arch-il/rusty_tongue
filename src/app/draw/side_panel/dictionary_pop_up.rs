@@ -178,10 +178,9 @@ impl MyEguiApp {
             .id(self.dictionary_pop_up.entry_id)
             .open(&mut open)
             .resizable(true)
-            .max_width(600.0)
-            .max_height(300.0)
+            .default_width(450.0)
+            .default_height(225.0)
             .vscroll(true)
-            .hscroll(true)
             .show(ctx, |ui| {
                 let entries = if let Some(entries) = &self.dictionary_pop_up.curr_entries {
                     entries
@@ -192,7 +191,7 @@ impl MyEguiApp {
                 };
 
                 for entry in entries {
-                    ui.horizontal(|ui| {
+                    ui.horizontal_wrapped(|ui| {
                         ui.label(
                             format!("{:?}", entry.classes)
                                 .chars()
@@ -245,11 +244,6 @@ impl MyEguiApp {
                                     .collect::<String>(),
                             );
                         }
-
-                        // ? maybe enable in the future
-                        // ui.label(format!("{:?}", entry.left_word.word_with_optional_parts()));
-                        // ui.label(format!("{:?}", entry.left_word.acronyms()));
-                        // ui.label(format!("{:?}", entry.left_word.comments()));
                     });
                 }
             });
